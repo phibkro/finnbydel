@@ -1,13 +1,19 @@
-import { bydelData, osloPostnrBydelnr, bergenPostnrBydelnr } from "./data.js";
+import { bydelData, postnrBydelDictionary } from "./data.js";
 
-export function finnBydel(postnummer, by) {
-  // const postnummer = adresseToPostnummer(adresse);
-  // const bydelnummer = postnummerToBydelnummer(postnummer);
-  // const bydel = bydelnummerToBydel(bydelnummer);
-  return "error";
+export function finnBydel(postnr) {
+  if (Object.keys(postnrBydelDictionary).includes(postnr)) {
+    console.log("is valid postnr");
+    if (postnrBydelDictionary[postnr].length > 2) {
+      console.log("is in trondheim or stavanger");
+      return postnrBydelDictionary[postnr];
+    }
+    console.log("is in oslo or bergen");
+    const bydelnr = postnrBydelDictionary[postnr];
+    if (postnr[0] === "5") {
+      return bydelData.Bergen[Number(bydelnr)-1];
+    }
+    return bydelData.Oslo[Number(bydelnr)-1];
+  }
+  // NB! postnr not validated, could be user error
+  return "uoppgitt";
 }
-
-function adresseTilPostnummer(adresse) {
-  // TODO
-}
-function bydelnummerToBydel(bydelnummer) {}
