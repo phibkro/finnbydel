@@ -1,4 +1,4 @@
-import { bydelData, postnrBydelDictionary } from "./data.js";
+import { bydelData, postnrBydelDictionary } from "../data/data.js";
 
 export function finnBydel(postnr) {
   if (Object.keys(postnrBydelDictionary).includes(postnr)) {

@@ -1,4 +1,6 @@
-import { finnBydel } from "./finnBydel.js";
+import { finnBydel } from "./lib/finnBydel.js";
+
+const app = document.querySelector('#app');
 
 /* console.log("Testing finnBydel()");
 
@@ -18,8 +20,8 @@ console.log("Testing with 5134 as postnummer");
 console.log(finnBydel("5134"));
 console.log("Solution: Åsane"); */
 
-let buttonEl = document.querySelector("#submit_button");
-console.log(buttonEl);
+const buttonEl = document.querySelector("#submit_button");
+// console.log(buttonEl);
 buttonEl.addEventListener("click", handleSubmit);
 
 function handleSubmit() {
