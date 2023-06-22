@@ -7,6 +7,7 @@ Tjenesten er egnet for å bli brukt av enkeltmennesker, bedrifter og utviklere
 - Enkel nettside som tar API-en i bruk
 - Løsning via eksakt adresse
 - Fuzzy search adresse
+- Check search performance and evaluate whether to search all zip codes or limit to cities
 - Find my location
 - Implementer kart?
 
