@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
+}
+
+model City {
+    id   Int    @id @default(autoincrement())
+    name String
+}
+
+model District {
+    id     Int @id @default(autoincrement())
+    cityId Int
+
+    districtName String
+    Address      Address[]
+
+    @@index([cityId])
+}
+
+model Address {
+    id         Int @id @default(autoincrement())
+    districtId Int
+
+    streetName   String
+    streetNumber Int
+    district     District @relation(fields: [districtId], references: [id])
+
+    @@index([districtId])
+}
