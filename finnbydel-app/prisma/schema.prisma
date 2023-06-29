@@ -14,14 +14,14 @@ datasource db {
 
 model City {
     id   Int    @id @default(autoincrement())
-    name String
+    name String @db.VarChar(255)
 }
 
 model District {
     id     Int @id @default(autoincrement())
     cityId Int
 
-    districtName String
+    districtName String    @db.VarChar(255)
     Address      Address[]
 
     @@index([cityId])
@@ -31,7 +31,7 @@ model Address {
     id         Int @id @default(autoincrement())
     districtId Int
 
-    streetName   String
+    streetName   String   @db.VarChar(255)
     streetNumber Int
     district     District @relation(fields: [districtId], references: [id])
 
