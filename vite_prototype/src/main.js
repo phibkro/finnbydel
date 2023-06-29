@@ -1,4 +1,4 @@
-import { finnBydelMedPostnr } from "./lib/finnBydel.ts";
+import { finnBydelMedPostnr } from "./lib/finnBydel.js";
 
 const app = document.querySelector("#app");
 
@@ -8,7 +8,7 @@ buttonEl?.addEventListener("click", handleSubmit);
 
 function handleSubmit() {
   console.log("submit");
-  const userInputEl = <HTMLInputElement>document.querySelector("#postnr");
+  const userInputEl = document.querySelector("#postnr");
   const pEl = document.querySelector("#result");
   const inputValue = userInputEl.value;
   console.log(inputValue);

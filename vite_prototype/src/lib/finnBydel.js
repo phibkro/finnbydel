@@ -1,6 +1,6 @@
 import { bydelData, postnrBydelDictionary } from "../data/data";
 
-export function finnBydelMedPostnr(postnr: string) {
+export function finnBydelMedPostnr(postnr) {
   if (Object.keys(postnrBydelDictionary).includes(postnr)) {
     console.log("is valid postnr");
     if (postnrBydelDictionary[postnr].length > 2) {

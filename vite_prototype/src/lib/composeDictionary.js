@@ -1,6 +1,6 @@
-import { oslo, bergen, trondheim, stavanger } from "../data/rawPostnrData.ts";
+import { oslo, bergen, trondheim, stavanger } from "../data/rawPostnrData.js";
 
-export function composeDictionaryFromTSV(text: string) {
+export function composeDictionaryFromTSV(text) {
   return text.replace(/\t/g, ":").replace(/\n/g, ",").replace(/  /g, "");
 
   let jsonObject = '{"';
