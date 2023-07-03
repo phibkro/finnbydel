@@ -1,9 +1,25 @@
+import React from "react";
 import Head from "next/head";
 import { api } from "~/utils/api";
+import {
+  ComboBox,
+  Input,
+  Item,
+  Label,
+  ListBox,
+  Popover,
+} from "react-aria-components";
 
 export default function Home() {
   const { data } = api.city.getAll.useQuery();
+  /* const data = [
+    { id: 0, name: "Bergen" },
+    { id: 1, name: "Trondheim" },
+    { id: 2, name: "Oslo" },
+    { id: 3, name: "Stavanger" },
+  ]; */
 
+  const [majorId, setMajorId] = React.useState<React.Key | null>(null);
   return (
     <>
       <Head>
@@ -13,8 +29,25 @@ export default function Home() {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div>
-          <h1>Addresses</h1>
-          {data?.map((city) => (<div key={city.id}>{city.name}</div>))}
+          <p>Selected topic id: {majorId}</p>
+          <ComboBox defaultItems={data} onSelectionChange={setMajorId}>
+            <Label>Address</Label>
+            <div>
+              <Input />
+            </div>
+            <Popover>
+              <ListBox>
+                {data?.map((city) => (
+                  <Item key={city.id}>{city.name}</Item>
+                ))}
+              </ListBox>
+            </Popover>
+          </ComboBox>
+
+          {/* <h1>Addresses</h1>
+          {data?.map((city) => (
+            <div key={city.id}>{city.name}</div>
+          ))} */}
         </div>
       </main>
     </>
