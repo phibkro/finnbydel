@@ -43,11 +43,6 @@ export default function Home() {
               </ListBox>
             </Popover>
           </ComboBox>
-
-          {/* <h1>Addresses</h1>
-          {data?.map((city) => (
-            <div key={city.id}>{city.name}</div>
-          ))} */}
         </div>
       </main>
     </>
