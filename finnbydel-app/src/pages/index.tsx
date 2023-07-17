@@ -15,7 +15,7 @@ export default function Home() {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    // formState: { errors },
   } = useForm<FormValues>();
 
   const addressQuery = api.address.byAddress.useQuery(
