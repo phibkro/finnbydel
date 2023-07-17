@@ -1,8 +1,29 @@
-import { z } from "zod";
+import { addressSchema } from "~/server/zodSchemas";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const addressRouter = createTRPCRouter({
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.address.findMany();
+  byAddress: publicProcedure.input(addressSchema).query(({ ctx, input }) => {
+    return ctx.prisma.address.findFirst({
+      where: {
+        cityId: input.cityId,
+        streetName: input.streetName,
+        houseNumber: input.houseNumber,
+      },
+    });
   }),
+  /* byStreetName: publicProcedure
+    .input(addressSchema.omit({ houseNumber: true }))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.address.findMany({
+        where: {
+          cityId: input.cityId,
+          streetName: input.streetName,
+        },
+        distinct: ["districtName"],
+        select: {
+          city: { select: { name: true } },
+          districtName: true,
+        },
+      });
+    }), */
 });
