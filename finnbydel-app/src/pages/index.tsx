@@ -73,7 +73,7 @@ export default function Home() {
           adresse tilhører? Søk på adresser her.
         </p>
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={void handleSubmit(onSubmit)}
           className="flex flex-col gap-2 text-xl"
         >
           <label>Hvilken by ligger adressen i?:</label>
