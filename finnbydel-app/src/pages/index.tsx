@@ -73,7 +73,7 @@ export default function Home() {
           adresse tilhører? Søk på adresser her.
         </p>
         <form
-          onSubmit={void handleSubmit(onSubmit)}
+          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
           className="flex flex-col gap-2 text-xl"
         >
           <label>Hvilken by ligger adressen i?:</label>
@@ -90,7 +90,9 @@ export default function Home() {
             className="p-2 text-black"
           />
         </form>
-        {addressQuery.data && <p>{addressQuery.data.districtName}</p>}
+        {addressQuery.data && (
+          <p className="text-4xl">{addressQuery.data.districtName}</p>
+        )}
         {addressQuery.error && <p>{addressQuery.error.message}</p>}
       </main>
     </>
