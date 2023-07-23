@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const addressRouter = createTRPCRouter({
   byAddress: publicProcedure.input(addressSchema).query(({ ctx, input }) => {
-    return ctx.prisma.address.findFirst({
+    return ctx.prisma.address.findFirstOrThrow({
       where: {
         cityId: input.cityId,
         streetName: input.streetName,

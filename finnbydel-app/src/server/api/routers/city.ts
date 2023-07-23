@@ -13,7 +13,7 @@ export const cityRouter = createTRPCRouter({
       })
     )
     .query(({ ctx, input }) => {
-      return ctx.prisma.city.findFirst({
+      return ctx.prisma.city.findFirstOrThrow({
         where: {
           id: input.cityId,
         },

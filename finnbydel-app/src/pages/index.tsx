@@ -93,7 +93,9 @@ export default function Home() {
         {addressQuery.data && (
           <p className="text-4xl">{addressQuery.data.districtName}</p>
         )}
-        {addressQuery.error && <p>{addressQuery.error.message}</p>}
+        {addressQuery.error && (
+          <p className="text-4xl">{addressQuery.error.message}</p>
+        )}
       </main>
     </>
   );

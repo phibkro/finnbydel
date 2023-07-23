@@ -6,7 +6,7 @@ export const districtRouter = createTRPCRouter({
     return ctx.prisma.district.findMany();
   }),
   byAddress: publicProcedure.input(addressSchema).query(({ ctx, input }) => {
-    return ctx.prisma.district.findFirst({
+    return ctx.prisma.district.findFirstOrThrow({
       where: {
         cityId: input.cityId,
         addresses: {
