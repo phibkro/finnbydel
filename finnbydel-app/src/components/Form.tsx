@@ -28,6 +28,7 @@ interface FormProps<T extends object>
   cityId: number;
   arrayData: string[] | Fuzzysort.Prepared[];
 }
+/* TODO: See if Form needs refactoring/decoupling as its quite messy */
 export default function Form<T extends object>({
   label,
   description,
@@ -68,6 +69,9 @@ export default function Form<T extends object>({
   const onSubmit: SubmitHandler<FormValues> = async () => {
     // Enable the query to execute on form submission
     try {
+      if (filteredItems[0]?.score !== 0) {
+        throw new Error("Invalid address");
+      }
       const result = await addressQuery.refetch();
       console.log(result);
     } catch (error) {
