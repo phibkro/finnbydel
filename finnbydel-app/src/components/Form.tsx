@@ -2,6 +2,8 @@ import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form/dist/types";
 
+import { Input, Label } from "react-aria-components";
+
 type FormValues = {
   cityId: number;
   addressQuery: string;
@@ -45,8 +47,8 @@ export default function Form({ cityId }: FormProps) {
         onSubmit={(e) => void handleSubmit(onSubmit)(e)}
         className="flex flex-col gap-2 text-xl"
       >
-        <label>Skriv inn adressen:</label>
-        <input
+        <Label>Skriv inn adressen:</Label>
+        <Input
           {...register("addressQuery", { required: true, min: 3, max: 255 })}
           aria-invalid={errors.addressQuery ? "true" : "false"}
           className="p-2 text-black"
