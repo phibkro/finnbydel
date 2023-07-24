@@ -1,5 +1,6 @@
 import React from "react";
 import Head from "next/head";
+import Link from "next/link";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,7 +22,13 @@ export default function Layout({ children }: LayoutProps) {
           adresse tilhører? Søk på adresser her.
         </p>
         <p className="text-3xl">Hvilken by ligger adressen i?</p>
-
+        <ul>
+          {cities.map((city, i) => (
+            <li key={i} className="text-3xl">
+              <Link href={city.toLowerCase()}>{city}</Link>
+            </li>
+          ))}
+        </ul>
         {children}
       </main>
     </>

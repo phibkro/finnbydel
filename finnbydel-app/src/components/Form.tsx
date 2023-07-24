@@ -7,7 +7,10 @@ type FormValues = {
   addressQuery: string;
 };
 
-export default function Form() {
+interface FormProps {
+  cityId: number;
+}
+export default function Form({ cityId }: FormProps) {
   const {
     register,
     handleSubmit,
@@ -17,7 +20,7 @@ export default function Form() {
 
   const addressQuery = api.address.byAddress.useQuery(
     {
-      cityId: Number(watch("cityId", 1)),
+      cityId: Number(cityId),
       houseNumber: parseHouseNumber(watch("addressQuery", "1")),
       streetName: parseStreetName(watch("addressQuery", "default query")),
     },
@@ -42,14 +45,6 @@ export default function Form() {
         onSubmit={(e) => void handleSubmit(onSubmit)(e)}
         className="flex flex-col gap-2 text-xl"
       >
-        <label>Hvilken by ligger adressen i?:</label>
-        <select {...register("cityId")} className="p-2 text-black">
-          <option value="1">Bergen</option>
-          <option value="2">Oslo</option>
-          <option value="3">Trondheim</option>
-          <option value="4">Stavanger</option>
-        </select>
-
         <label>Skriv inn adressen:</label>
         <input
           {...register("addressQuery", { required: true, min: 3, max: 255 })}
