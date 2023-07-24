@@ -1,37 +1,70 @@
+import { useState, useMemo } from "react";
+import fuzzysort from "fuzzysort";
 import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form/dist/types";
 
-import { Input, Label } from "react-aria-components";
+import {
+  ComboBox,
+  Input,
+  Item,
+  Label,
+  ListBox,
+  Popover,
+  Text,
+} from "react-aria-components";
+import type { ComboBoxProps } from "react-aria-components";
 
 type FormValues = {
   cityId: number;
   addressQuery: string;
 };
 
-interface FormProps {
+interface FormProps<T extends object>
+  extends Omit<ComboBoxProps<T>, "children"> {
+  label?: string;
+  description?: string | null;
+  errorMessage?: string | null;
   cityId: number;
+  arrayData: string[] | Fuzzysort.Prepared[];
 }
-export default function Form({ cityId }: FormProps) {
+export default function Form<T extends object>({
+  label,
+  description,
+  errorMessage,
+  cityId,
+  arrayData,
+  ...props
+}: FormProps<T>) {
+  // Autocomplete filtering logic
+  const [filtervalue, setFilterValue] = useState("");
+  const filteredItems = useMemo(
+    () =>
+      fuzzysort.go(filtervalue, arrayData, {
+        all: false,
+        limit: 10,
+        threshold: -10000,
+      }),
+    [filtervalue, arrayData]
+  );
+  // Form logic
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
   } = useForm<FormValues>();
-
   const addressQuery = api.address.byAddress.useQuery(
     {
       cityId: Number(cityId),
-      houseNumber: parseHouseNumber(watch("addressQuery", "1")),
-      streetName: parseStreetName(watch("addressQuery", "default query")),
+      houseNumber: parseHouseNumber(filtervalue),
+      streetName: parseStreetName(filtervalue),
     },
     {
       enabled: false, // Disable initial query execution
       retry: false, // Disable automatic retry
     }
   );
-
   const onSubmit: SubmitHandler<FormValues> = async () => {
     // Enable the query to execute on form submission
     try {
@@ -47,12 +80,24 @@ export default function Form({ cityId }: FormProps) {
         onSubmit={(e) => void handleSubmit(onSubmit)(e)}
         className="flex flex-col gap-2 text-xl"
       >
-        <Label>Skriv inn adressen:</Label>
-        <Input
-          {...register("addressQuery", { required: true, min: 3, max: 255 })}
-          aria-invalid={errors.addressQuery ? "true" : "false"}
-          className="p-2 text-black"
-        />
+        <ComboBox
+          /* TODO: Fix typescript error */
+          items={filteredItems}
+          inputValue={filtervalue}
+          onInputChange={setFilterValue}
+          {...props}
+          className="flex flex-col"
+        >
+          <Label>{label}</Label>
+          <Input className="p-2 text-black" />
+          {description && <Text slot="description">{description}</Text>}
+          {errorMessage && <Text slot="errorMessage">{errorMessage}</Text>}
+          <Popover>
+            <ListBox>
+              {(result) => <Item key={result.target}>{result.target}</Item>}
+            </ListBox>
+          </Popover>
+        </ComboBox>
       </form>
       {addressQuery.data && (
         <p className="text-4xl">{addressQuery.data.districtName}</p>
