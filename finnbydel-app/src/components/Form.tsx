@@ -4,39 +4,20 @@ import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form/dist/types";
 
-import {
-  ComboBox,
-  Input,
-  Item,
-  Label,
-  ListBox,
-  Popover,
-  Text,
-} from "react-aria-components";
-import type { ComboBoxProps } from "react-aria-components";
+import MyComboBox, { MyItem } from "./MyComboBox";
 
 type FormValues = {
   cityId: number;
   addressQuery: string;
 };
 
-interface FormProps<T extends object>
-  extends Omit<ComboBoxProps<T>, "children"> {
+interface FormProps {
   label?: string;
-  description?: string | null;
-  errorMessage?: string | null;
   cityId: number;
   arrayData: string[] | Fuzzysort.Prepared[];
 }
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form<T extends object>({
-  label,
-  description,
-  errorMessage,
-  cityId,
-  arrayData,
-  ...props
-}: FormProps<T>) {
+export default function Form({ label, cityId, arrayData }: FormProps) {
   // Autocomplete filtering logic
   const [filtervalue, setFilterValue] = useState("");
   const filteredItems = useMemo(
@@ -49,12 +30,7 @@ export default function Form<T extends object>({
     [filtervalue, arrayData]
   );
   // Form logic
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<FormValues>();
+  const { handleSubmit } = useForm<FormValues>();
   const addressQuery = api.address.byAddress.useQuery(
     {
       cityId: Number(cityId),
@@ -84,24 +60,15 @@ export default function Form<T extends object>({
         onSubmit={(e) => void handleSubmit(onSubmit)(e)}
         className="flex flex-col gap-2 text-xl"
       >
-        <ComboBox
+        <MyComboBox
           /* TODO: Fix typescript error */
           items={filteredItems}
           inputValue={filtervalue}
           onInputChange={setFilterValue}
-          {...props}
-          className="flex flex-col"
+          label={label}
         >
-          <Label>{label}</Label>
-          <Input className="p-2 text-black" />
-          {description && <Text slot="description">{description}</Text>}
-          {errorMessage && <Text slot="errorMessage">{errorMessage}</Text>}
-          <Popover>
-            <ListBox>
-              {(result) => <Item key={result.target}>{result.target}</Item>}
-            </ListBox>
-          </Popover>
-        </ComboBox>
+          {(result) => <MyItem key={result.target}>{result.target}</MyItem>}
+        </MyComboBox>
       </form>
       {addressQuery.data && (
         <p className="text-4xl">{addressQuery.data.districtName}</p>

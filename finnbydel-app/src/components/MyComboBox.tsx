@@ -27,8 +27,8 @@ export default function MyComboBox<T extends object>({
   return (
     <ComboBox {...props}>
       <Label>{label}</Label>
-      <div className="my-combobox-container">
-        <Input />
+      <div>
+        <Input className="p-2 text-black" />
       </div>
       {description && <Text slot="description">{description}</Text>}
       {errorMessage && <Text slot="errorMessage">{errorMessage}</Text>}
