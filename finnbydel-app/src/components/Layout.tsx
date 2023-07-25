@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center gap-4  bg-slate-900 text-white">
         <h1 className="text-5xl">Finn bydelen din</h1>
-        <p className="text-3xl">
+        <p className="text-center text-3xl ">
           Usikker på hvilken bydel du bor i? Lurer du på hvilken bydel en
           adresse tilhører? Søk på adresser her.
         </p>
