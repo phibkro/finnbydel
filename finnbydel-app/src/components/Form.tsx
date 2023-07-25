@@ -45,7 +45,7 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
   const onSubmit: SubmitHandler<FormValues> = async () => {
     // Enable the query to execute on form submission
     try {
-      if (filteredItems[0]?.score !== 0) {
+      if (filteredItems && filteredItems[0]?.score !== 0) {
         throw new Error("Invalid address");
       }
       const result = await addressQuery.refetch();
@@ -54,6 +54,10 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       console.error(error);
     }
   };
+  const inputChange = (v: string) => {
+    setFilterValue(v);
+    console.log(filteredItems);
+  };
   return (
     <>
       <form
@@ -61,10 +65,9 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
         className="flex flex-col gap-2 text-xl"
       >
         <MyComboBox
-          /* TODO: Fix typescript error */
           items={filteredItems}
           inputValue={filtervalue}
-          onInputChange={setFilterValue}
+          onInputChange={inputChange}
           label={label}
         >
           {(result) => <MyItem key={result.target}>{result.target}</MyItem>}
