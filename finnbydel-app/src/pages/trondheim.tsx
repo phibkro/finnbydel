@@ -19,7 +19,11 @@ export default function Trondheim({ arrayData }: TrondheimProps) {
   );
 }
 export async function getStaticProps() {
-  const filePath = path.join(process.cwd(), "private", "Oslo_Adressenavn.tsv");
+  const filePath = path.join(
+    process.cwd(),
+    "public",
+    "Trondheim_Adressenavn.tsv"
+  );
   const fileData = await fs.readFile(filePath, "utf-8");
   const arrayData = fileData.trim().split("\r\n");
   return { props: { arrayData } };

@@ -21,7 +21,7 @@ export default function Stavanger({ arrayData }: StavangerProps) {
 export async function getStaticProps() {
   const filePath = path.join(
     process.cwd(),
-    "private",
+    "public",
     "Stavanger_Adressenavn.tsv"
   );
   const fileData = await fs.readFile(filePath, "utf-8");
