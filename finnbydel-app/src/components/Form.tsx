@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form/dist/types";
 
-import MyComboBox, { MyItem } from "./MyComboBox";
+import MyComboBox, { StyledItem } from "./MyComboBox";
 
 type FormValues = {
   cityId: number;
@@ -69,8 +69,11 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
           inputValue={filtervalue}
           onInputChange={inputChange}
           label={label}
+          className="flex flex-col"
         >
-          {(result) => <MyItem key={result.target}>{result.target}</MyItem>}
+          {(result) => (
+            <StyledItem key={result.target}>{result.target}</StyledItem>
+          )}
         </MyComboBox>
       </form>
       {addressQuery.data && (

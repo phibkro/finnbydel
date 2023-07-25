@@ -27,9 +27,7 @@ export default function MyComboBox<T extends object>({
   return (
     <ComboBox {...props}>
       <Label>{label}</Label>
-      <div>
-        <Input className="p-2 text-black" />
-      </div>
+      <Input className="p-2 text-black" autoComplete="street-address" />
       {description && <Text slot="description">{description}</Text>}
       {errorMessage && <Text slot="errorMessage">{errorMessage}</Text>}
       <Popover>
@@ -39,12 +37,14 @@ export default function MyComboBox<T extends object>({
   );
 }
 
-export function MyItem(props: ItemProps) {
+export function StyledItem(props: ItemProps) {
   return (
     <Item
       {...props}
       className={({ isFocused, isSelected }) =>
-        `my-item ${isFocused ? "focused" : ""} ${isSelected ? "selected" : ""}`
+        `${isFocused ? "focused" : "bg-red-500"} ${
+          isSelected ? "selected" : "bg-green-500"
+        }`
       }
     />
   );
