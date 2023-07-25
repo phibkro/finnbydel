@@ -69,6 +69,8 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
           inputValue={filtervalue}
           onInputChange={inputChange}
           label={label}
+          isRequired
+          autoFocus
           className="flex flex-col"
         >
           {(result) => (
