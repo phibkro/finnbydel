@@ -19,8 +19,16 @@ export default function Bergen({ arrayData }: BergenProps) {
   );
 }
 export async function getStaticProps() {
-  const filePath = path.join(process.cwd(), "public", "Bergen_Adressenavn.tsv");
-  const fileData = await fs.readFile(filePath, "utf-8");
-  const arrayData = fileData.trim().split("\r\n");
-  return { props: { arrayData } };
+  try {
+    const filePath = path.join(
+      process.cwd(),
+      "public",
+      "Bergen_Adressenavn.tsv"
+    );
+    const fileData = await fs.readFile(filePath, "utf-8");
+    const arrayData = fileData.trim().split("\r\n");
+    return { props: { arrayData } };
+  } catch (error) {
+    console.error(error);
+  }
 }
