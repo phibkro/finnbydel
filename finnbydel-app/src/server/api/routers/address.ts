@@ -1,4 +1,5 @@
-import { addressSchema } from "~/server/zodSchemas";
+import { z } from "zod";
+import { addressSchema, cityIdSchema } from "~/server/zodSchemas";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const addressRouter = createTRPCRouter({

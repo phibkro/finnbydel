@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { intSchema } from "~/server/zodSchemas";
+import { cityIdSchema } from "~/server/zodSchemas";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const cityRouter = createTRPCRouter({
@@ -9,7 +9,7 @@ export const cityRouter = createTRPCRouter({
   byId: publicProcedure
     .input(
       z.object({
-        cityId: intSchema,
+        cityId: cityIdSchema,
       })
     )
     .query(({ ctx, input }) => {
