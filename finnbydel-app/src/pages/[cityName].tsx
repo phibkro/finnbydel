@@ -89,6 +89,7 @@ export default function CityPage(
   const arrayData = addressQueryData.map(
     (result) => result.streetName + " " + result.houseNumber.toString()
   );
+  // NB!!! BYTTE PÅ REKKEFØLGE AV TRONDHEIM OG STAVANGER!!!
   const cities = ["Bergen", "Oslo", "Trondheim", "Stavanger"];
   return (
     <>
