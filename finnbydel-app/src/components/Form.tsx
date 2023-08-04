@@ -13,22 +13,22 @@ interface FormProps {
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
 export default function Form({ label, cityId, arrayData }: FormProps) {
   // Autocomplete filtering logic
-  const [filtervalue, setFilterValue] = useState("");
+  const [currentInput, setCurrentInput] = useState("");
   const filteredItems = useMemo(
     () =>
-      fuzzysort.go(filtervalue, arrayData, {
+      fuzzysort.go(currentInput, arrayData, {
         all: false,
         limit: 10,
         threshold: -10000,
       }),
-    [filtervalue, arrayData]
+    [currentInput, arrayData]
   );
   // Form logic
   const addressQuery = api.address.byAddress.useQuery(
     {
       cityId: Number(cityId),
-      houseNumber: parseHouseNumber(filtervalue),
-      streetName: parseStreetName(filtervalue),
+      houseNumber: parseHouseNumber(currentInput),
+      streetName: parseStreetName(currentInput),
     },
     {
       enabled: false, // Disable initial query execution
@@ -47,10 +47,6 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       console.error(error);
     }
   };
-  const inputChange = (v: string) => {
-    setFilterValue(v);
-    //console.log(filteredItems);
-  };
   return (
     <>
       <form
@@ -59,8 +55,8 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       >
         <MyComboBox
           items={filteredItems}
-          inputValue={filtervalue}
-          onInputChange={inputChange}
+          inputValue={currentInput}
+          onInputChange={setCurrentInput}
           label={label}
           isRequired
           autoFocus
@@ -70,14 +66,16 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
             <StyledItem key={result.target}>{result.target}</StyledItem>
           )}
         </MyComboBox>
+        {addressQuery.data && (
+          <p className="text-4xl">{addressQuery.data.districtName}</p>
+        )}
+        {addressQuery.error && (
+          <p className="text-4xl">{addressQuery.error.message}</p>
+        )}
+        {addressQuery.isInitialLoading && (
+          <p className="text-4xl">Loading...</p>
+        )}
       </form>
-      {addressQuery.data && (
-        <p className="text-4xl">{addressQuery.data.districtName}</p>
-      )}
-      {addressQuery.error && (
-        <p className="text-4xl">{addressQuery.error.message}</p>
-      )}
-      {addressQuery.isInitialLoading && <p className="text-4xl">Loading...</p>}
     </>
   );
 }
