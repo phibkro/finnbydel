@@ -84,6 +84,7 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       {addressQuery.error && (
         <p className="text-4xl">{addressQuery.error.message}</p>
       )}
+      {addressQuery.isInitialLoading && <p className="text-4xl">Loading...</p>}
     </>
   );
 }
