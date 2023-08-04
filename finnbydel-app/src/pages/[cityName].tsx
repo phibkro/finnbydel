@@ -12,7 +12,7 @@ import { api } from "~/utils/api";
 import Form from "~/components/Form";
 import Link from "next/link";
 
-// Generate paths by fetching cities from db
+// Generate paths by fetching city names from db
 export const getStaticPaths: GetStaticPaths = async () => {
   const cities = await prisma.city.findMany({
     select: { name: true },
@@ -37,11 +37,16 @@ export async function getStaticProps(
     transformer: SuperJSON,
   });
   const name = context.params?.cityName as string;
+  // Have to manually fetch city ids since we use city names for the paths
+  const { id } = await prisma.city.findFirstOrThrow({
+    where: { name: name },
+    select: { id: true },
+  });
 
   // Prefetch on build for SSG
   await helpers.city.all.prefetch();
-  await helpers.address.byCityName.prefetch({
-    query: { cityName: name },
+  await helpers.address.byCityId.prefetch({
+    query: { cityId: id },
     options: {
       take: 100000,
     },
@@ -51,6 +56,7 @@ export async function getStaticProps(
     props: {
       trpcState: helpers.dehydrate(),
       cityName: name,
+      cityId: id,
     },
     revalidate: 1,
   };
@@ -59,40 +65,27 @@ export async function getStaticProps(
 export default function CityPage(
   props: InferGetStaticPropsType<typeof getStaticProps>
 ) {
-  const { cityName } = props;
-  /* const cityQuery = api.city.byName.useQuery(
-    { cityName: name },
-    { refetchOnMount: false, refetchOnWindowFocus: false }
-  ); */
+  const { cityId } = props;
   const cityQuery = api.city.all.useQuery(undefined, {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
-
-  if (cityQuery.status !== "success") {
-    return <>Loading...</>;
-  }
-  const { data: cityQueryData } = cityQuery;
-
-  const addressQuery = api.address.byCityName.useQuery(
+  const addressQuery = api.address.byCityId.useQuery(
     {
-      query: { cityName: cityName },
+      query: { cityId: cityId },
       options: {
         take: 100000,
       },
     },
     { refetchOnMount: false, refetchOnWindowFocus: false }
   );
-  if (addressQuery.status !== "success") {
+  if (!cityQuery.isSuccess || !addressQuery.isSuccess) {
     return <>Loading...</>;
   }
-  const { data: addressQueryData } = addressQuery;
 
-  const arrayData = addressQueryData.map(
+  const addressNames = addressQuery.data.map(
     (result) => result.streetName + " " + result.houseNumber.toString()
   );
-  // NB!!! BYTTE PÅ REKKEFØLGE AV TRONDHEIM OG STAVANGER!!!
-  const cities = ["Bergen", "Oslo", "Trondheim", "Stavanger"];
   return (
     <>
       <main className="flex min-h-screen flex-col items-center justify-center gap-4  bg-slate-900 text-white">
@@ -103,18 +96,16 @@ export default function CityPage(
         </p>
         <p className="text-3xl">Hvilken by ligger adressen i?</p>
         <ul>
-          {cities.map((name, id) => (
-            <li key={id} className="text-3xl">
-              <Link href={name}>{name}</Link>
+          {cityQuery.data.map((result) => (
+            <li key={result.id} className="text-3xl">
+              <Link href={result.name}>{result.name}</Link>
             </li>
           ))}
         </ul>
         <Form
-          cityId={
-            cityQueryData.findIndex((element) => element.name === cityName) + 1
-          }
+          cityId={cityId}
           label={"Skriv inn addressen:"}
-          arrayData={arrayData}
+          arrayData={addressNames}
         ></Form>
       </main>
     </>
