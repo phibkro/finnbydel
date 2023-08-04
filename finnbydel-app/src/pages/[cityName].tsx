@@ -59,7 +59,10 @@ export default function CityPage(
   props: InferGetStaticPropsType<typeof getStaticProps>
 ) {
   const { name } = props;
-  const cityQuery = api.city.byName.useQuery({ cityName: name });
+  const cityQuery = api.city.byName.useQuery(
+    { cityName: name },
+    { refetchOnMount: false, refetchOnWindowFocus: false }
+  );
 
   if (cityQuery.status !== "success") {
     // won't happen since we're using `fallback: "blocking"`
@@ -67,12 +70,15 @@ export default function CityPage(
   }
   const { data: cityQueryData } = cityQuery;
 
-  const addressQuery = api.address.byCityName.useQuery({
-    query: { cityName: name },
-    options: {
-      take: 100000,
+  const addressQuery = api.address.byCityName.useQuery(
+    {
+      query: { cityName: name },
+      options: {
+        take: 100000,
+      },
     },
-  });
+    { refetchOnMount: false, refetchOnWindowFocus: false }
+  );
   if (addressQuery.status !== "success") {
     // won't happen since we're using `fallback: "blocking"`
     return <>Loading...</>;
