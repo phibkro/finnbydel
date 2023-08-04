@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { addressSchema, cityIdSchema } from "~/server/zodSchemas";
+import { addressSchema, intSchema, varCharSchema } from "~/server/zodSchemas";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const addressRouter = createTRPCRouter({
@@ -12,6 +12,25 @@ export const addressRouter = createTRPCRouter({
       },
     });
   }),
+  byCityName: publicProcedure
+    .input(
+      z.object({
+        query: z.object({ cityName: varCharSchema }),
+        options: z.object({ take: intSchema.max(100000) }),
+      })
+    )
+    .query(({ ctx, input }) => {
+      const id = getIdbyName(input.query.cityName);
+      return ctx.prisma.address.findMany({
+        where: {
+          cityId: id,
+        },
+        take: input.options.take,
+        orderBy: {
+          streetName: "desc",
+        },
+      });
+    }),
   /* byStreetName: publicProcedure
     .input(addressSchema.omit({ houseNumber: true }))
     .query(({ ctx, input }) => {
@@ -28,3 +47,8 @@ export const addressRouter = createTRPCRouter({
       });
     }), */
 });
+
+function getIdbyName(name: string) {
+  const names = ["empty", "Bergen", "Oslo", "Trondheim", "Stavanger"];
+  return names.findIndex((e) => e === name);
+}

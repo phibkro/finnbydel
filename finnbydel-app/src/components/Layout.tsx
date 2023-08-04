@@ -25,7 +25,7 @@ export default function Layout({ children }: LayoutProps) {
         <ul>
           {cities.map((city, i) => (
             <li key={i} className="text-3xl">
-              <Link href={city.toLowerCase()}>{city}</Link>
+              <Link href={city}>{city}</Link>
             </li>
           ))}
         </ul>
