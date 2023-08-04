@@ -8,20 +8,20 @@ import MyComboBox, { StyledItem } from "./MyComboBox";
 interface FormProps {
   label?: string;
   cityId: number;
-  arrayData: string[] | Fuzzysort.Prepared[];
+  addressNames: string[] | Fuzzysort.Prepared[];
 }
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form({ label, cityId, arrayData }: FormProps) {
+export default function Form({ label, cityId, addressNames }: FormProps) {
   // Autocomplete filtering logic
   const [currentInput, setCurrentInput] = useState("");
   const filteredItems = useMemo(
     () =>
-      fuzzysort.go(currentInput, arrayData, {
+      fuzzysort.go(currentInput, addressNames, {
         all: false,
         limit: 10,
         threshold: -10000,
       }),
-    [currentInput, arrayData]
+    [currentInput, addressNames]
   );
   // Form logic
   const addressQuery = api.address.byAddress.useQuery(

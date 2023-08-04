@@ -105,7 +105,7 @@ export default function CityPage(
         <Form
           cityId={cityId}
           label={"Skriv inn addressen:"}
-          arrayData={addressNames}
+          addressNames={addressNames}
         ></Form>
       </main>
     </>
