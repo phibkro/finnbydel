@@ -12,6 +12,7 @@ import { api } from "~/utils/api";
 import Form from "~/components/Form";
 import Link from "next/link";
 
+// Generate paths by fetching cities from db
 export const getStaticPaths: GetStaticPaths = async () => {
   const cities = await prisma.city.findMany({
     select: { name: true },
@@ -37,6 +38,7 @@ export async function getStaticProps(
   });
   const name = context.params?.cityName as string;
 
+  // Prefetch on build for SSG
   await helpers.city.all.prefetch();
   await helpers.address.byCityName.prefetch({
     query: { cityName: name },
