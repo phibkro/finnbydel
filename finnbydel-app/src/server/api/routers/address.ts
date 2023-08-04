@@ -49,6 +49,7 @@ export const addressRouter = createTRPCRouter({
 });
 
 function getIdbyName(name: string) {
+  // Janky solution
   const names = ["empty", "Bergen", "Oslo", "Trondheim", "Stavanger"];
   return names.findIndex((e) => e === name);
 }
