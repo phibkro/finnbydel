@@ -97,7 +97,12 @@ export default function CityPage(
         <p className="text-3xl">Hvilken by ligger adressen i?</p>
         <ul>
           {cityQuery.data.map((result) => (
-            <li key={result.id} className="text-3xl">
+            <li
+              key={result.id}
+              className={`${
+                result.id === cityId ? "text-orange-600" : ""
+              } text-3xl`}
+            >
               <Link href={result.name}>{result.name}</Link>
             </li>
           ))}
