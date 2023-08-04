@@ -8,8 +8,9 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import SuperJSON from "superjson";
 
-import Form from "~/components/Form";
 import { api } from "~/utils/api";
+import Form from "~/components/Form";
+import Link from "next/link";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const cities = await prisma.city.findMany({
@@ -36,9 +37,7 @@ export async function getStaticProps(
   });
   const name = context.params?.cityName as string;
 
-  await helpers.city.byName.prefetch({
-    cityName: name,
-  });
+  await helpers.city.all.prefetch();
   await helpers.address.byCityName.prefetch({
     query: { cityName: name },
     options: {
@@ -49,7 +48,7 @@ export async function getStaticProps(
   return {
     props: {
       trpcState: helpers.dehydrate(),
-      name,
+      cityName: name,
     },
     revalidate: 1,
   };
@@ -58,21 +57,24 @@ export async function getStaticProps(
 export default function CityPage(
   props: InferGetStaticPropsType<typeof getStaticProps>
 ) {
-  const { name } = props;
-  const cityQuery = api.city.byName.useQuery(
+  const { cityName } = props;
+  /* const cityQuery = api.city.byName.useQuery(
     { cityName: name },
     { refetchOnMount: false, refetchOnWindowFocus: false }
-  );
+  ); */
+  const cityQuery = api.city.all.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   if (cityQuery.status !== "success") {
-    // won't happen since we're using `fallback: "blocking"`
     return <>Loading...</>;
   }
   const { data: cityQueryData } = cityQuery;
 
   const addressQuery = api.address.byCityName.useQuery(
     {
-      query: { cityName: name },
+      query: { cityName: cityName },
       options: {
         take: 100000,
       },
@@ -80,7 +82,6 @@ export default function CityPage(
     { refetchOnMount: false, refetchOnWindowFocus: false }
   );
   if (addressQuery.status !== "success") {
-    // won't happen since we're using `fallback: "blocking"`
     return <>Loading...</>;
   }
   const { data: addressQueryData } = addressQuery;
@@ -88,16 +89,31 @@ export default function CityPage(
   const arrayData = addressQueryData.map(
     (result) => result.streetName + " " + result.houseNumber.toString()
   );
+  const cities = ["Bergen", "Oslo", "Trondheim", "Stavanger"];
   return (
     <>
-      <h2>{name}</h2>
-      <p>{cityQueryData.id}</p>
-      <p>{cityQueryData.name}</p>
-      <Form
-        cityId={cityQueryData?.id}
-        label={"Skriv inn addressen:"}
-        arrayData={arrayData}
-      ></Form>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4  bg-slate-900 text-white">
+        <h1 className="text-5xl">Finn bydelen din</h1>
+        <p className="text-center text-3xl ">
+          Usikker på hvilken bydel du bor i? Lurer du på hvilken bydel en
+          adresse tilhører? Søk på adresser her.
+        </p>
+        <p className="text-3xl">Hvilken by ligger adressen i?</p>
+        <ul>
+          {cities.map((name, id) => (
+            <li key={id} className="text-3xl">
+              <Link href={name}>{name}</Link>
+            </li>
+          ))}
+        </ul>
+        <Form
+          cityId={
+            cityQueryData.findIndex((element) => element.name === cityName) + 1
+          }
+          label={"Skriv inn addressen:"}
+          arrayData={arrayData}
+        ></Form>
+      </main>
     </>
   );
 }
