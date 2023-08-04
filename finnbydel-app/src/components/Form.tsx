@@ -48,15 +48,14 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       if (filteredItems && filteredItems[0]?.score !== 0) {
         throw new Error("Invalid address");
       }
-      const result = await addressQuery.refetch();
-      console.log(result);
+      await addressQuery.refetch();
     } catch (error) {
       console.error(error);
     }
   };
   const inputChange = (v: string) => {
     setFilterValue(v);
-    console.log(filteredItems);
+    //console.log(filteredItems);
   };
   return (
     <>
