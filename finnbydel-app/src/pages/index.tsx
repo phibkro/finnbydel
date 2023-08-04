@@ -1,7 +1,36 @@
+import { createServerSideHelpers } from "@trpc/react-query/server";
 import Link from "next/link";
+import SuperJSON from "superjson";
+import { appRouter } from "~/server/api/root";
+import { prisma } from "~/server/db";
+import { api } from "~/utils/api";
+
+export async function getStaticProps() {
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: { prisma },
+    transformer: SuperJSON,
+  });
+
+  // Prefetch on build for SSG
+  await helpers.city.all.prefetch();
+
+  return {
+    props: {
+      trpcState: helpers.dehydrate(),
+    },
+    revalidate: 1,
+  };
+}
 
 export default function Home() {
-  const cities = ["Bergen", "Oslo", "Trondheim", "Stavanger"];
+  const cityQuery = api.city.all.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+  if (!cityQuery.isSuccess) {
+    return <>Loading...</>;
+  }
   return (
     <>
       <main className="flex min-h-screen flex-col items-center justify-center gap-4  bg-slate-900 text-white">
@@ -12,9 +41,9 @@ export default function Home() {
         </p>
         <p className="text-3xl">Hvilken by ligger adressen i?</p>
         <ul>
-          {cities.map((name, id) => (
-            <li key={id} className="text-3xl">
-              <Link href={name}>{name}</Link>
+          {cityQuery.data.map((result) => (
+            <li key={result.id} className="text-3xl">
+              <Link href={result.name}>{result.name}</Link>
             </li>
           ))}
         </ul>
