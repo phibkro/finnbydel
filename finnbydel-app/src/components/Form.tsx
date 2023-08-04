@@ -1,15 +1,9 @@
 import { useState, useMemo } from "react";
+import type { FormEvent } from "react";
 import fuzzysort from "fuzzysort";
 import { api } from "~/utils/api";
-import { useForm } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form/dist/types";
 
 import MyComboBox, { StyledItem } from "./MyComboBox";
-
-type FormValues = {
-  cityId: number;
-  addressQuery: string;
-};
 
 interface FormProps {
   label?: string;
@@ -30,7 +24,6 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
     [filtervalue, arrayData]
   );
   // Form logic
-  const { handleSubmit } = useForm<FormValues>();
   const addressQuery = api.address.byAddress.useQuery(
     {
       cityId: Number(cityId),
@@ -42,7 +35,8 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
       retry: false, // Disable automatic retry
     }
   );
-  const onSubmit: SubmitHandler<FormValues> = async () => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     // Enable the query to execute on form submission
     try {
       if (filteredItems && filteredItems[0]?.score !== 0) {
@@ -60,7 +54,7 @@ export default function Form({ label, cityId, arrayData }: FormProps) {
   return (
     <>
       <form
-        onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+        onSubmit={(e) => void handleSubmit(e)}
         className="flex flex-col gap-2 text-xl"
       >
         <MyComboBox
