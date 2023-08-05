@@ -58,7 +58,6 @@ export async function getStaticProps(
       cityName: name,
       cityId: id,
     },
-    revalidate: 1,
   };
 }
 
