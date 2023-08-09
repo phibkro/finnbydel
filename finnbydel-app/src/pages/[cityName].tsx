@@ -87,30 +87,38 @@ export default function CityPage(
   );
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4  bg-slate-900 text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white text-purple-dark dark:bg-black-kinda dark:text-white">
         <h1 className="text-5xl">Finn bydelen din</h1>
         <p className="text-center text-3xl ">
           Usikker på hvilken bydel du bor i? Lurer du på hvilken bydel en
           adresse tilhører? Søk på adresser her.
         </p>
-        <p className="text-3xl">Hvilken by ligger adressen i?</p>
-        <ul>
-          {cityQuery.data.map((result) => (
-            <li
-              key={result.id}
-              className={`${
-                result.id === cityId ? "text-orange-600" : ""
-              } text-3xl`}
-            >
-              <Link href={result.name}>{result.name}</Link>
-            </li>
-          ))}
-        </ul>
-        <Form
-          cityId={cityId}
-          label={"Skriv inn addressen:"}
-          addressNames={addressNames}
-        ></Form>
+        <div className="flex flex-col items-center gap-2 bg-gray-light pb-5 dark:bg-gray-dark">
+          <h2 className="bg-blue-light p-2 text-3xl dark:bg-gray-darkdark">
+            Hvilken by ligger adressen i?
+          </h2>
+          <ul>
+            {cityQuery.data.map((result) => (
+              <li
+                key={result.id}
+                className={`${
+                  result.id === cityId ? "text-pink-600" : ""
+                } text-3xl`}
+              >
+                <Link href={result.name} className="hover:text-blue-dark">
+                  {result.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <hr className="w-full border-2" />
+          <Form
+            cityId={cityId}
+            label={"Skriv inn addressen:"}
+            addressNames={addressNames}
+            className={"flex flex-col items-center gap-3 text-xl"}
+          ></Form>
+        </div>
       </main>
     </>
   );
