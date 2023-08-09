@@ -76,7 +76,12 @@ export default function CityPage(
         take: 100000,
       },
     },
-    { refetchOnMount: false, refetchOnWindowFocus: false }
+    {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+    }
   );
   if (!cityQuery.isSuccess || !addressQuery.isSuccess) {
     return <>Loading...</>;
