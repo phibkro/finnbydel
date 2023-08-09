@@ -3,15 +3,28 @@ import type { FormEvent } from "react";
 import fuzzysort from "fuzzysort";
 import { api } from "~/utils/api";
 
-import MyComboBox, { StyledItem } from "./MyComboBox";
+import {
+  ComboBox,
+  Input,
+  Item,
+  Label,
+  ListBox,
+  Popover,
+} from "react-aria-components";
 
 interface FormProps {
   label?: string;
+  className: string;
   cityId: number;
   addressNames: string[] | Fuzzysort.Prepared[];
 }
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form({ label, cityId, addressNames }: FormProps) {
+export default function Form({
+  label,
+  cityId,
+  addressNames,
+  className,
+}: FormProps) {
   // Autocomplete filtering logic
   const [currentInput, setCurrentInput] = useState("");
   const filteredItems = useMemo(
@@ -49,32 +62,46 @@ export default function Form({ label, cityId, addressNames }: FormProps) {
   };
   return (
     <>
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        className="flex flex-col gap-2 text-xl"
-      >
-        <MyComboBox
-          items={filteredItems}
+      <form onSubmit={(e) => void handleSubmit(e)} className={className}>
+        <ComboBox
           inputValue={currentInput}
           onInputChange={setCurrentInput}
-          label={label}
           isRequired
           autoFocus
-          className="flex flex-col"
+          className="flex flex-col gap-2"
         >
-          {(result) => (
-            <StyledItem key={result.target}>{result.target}</StyledItem>
+          <Label>{label}</Label>
+          <Input
+            className="border-2 border-purple-dark p-1.5 px-4 text-purple-dark hover:border-blue-dark focus-visible:border-4 focus-visible:border-blue-dark focus-visible:p-1 focus-visible:px-3.5  focus-visible:outline-none"
+            placeholder="Søk etter addresse"
+            autoComplete="street-address"
+          />
+          {addressQuery.data && (
+            <p className="text-4xl">{addressQuery.data.districtName}</p>
           )}
-        </MyComboBox>
-        {addressQuery.data && (
-          <p className="text-4xl">{addressQuery.data.districtName}</p>
-        )}
-        {addressQuery.error && (
-          <p className="text-4xl">{addressQuery.error.message}</p>
-        )}
-        {addressQuery.isInitialLoading && (
-          <p className="text-4xl">Loading...</p>
-        )}
+          {addressQuery.error && (
+            <p className="text-4xl">{addressQuery.error.message}</p>
+          )}
+          {addressQuery.isInitialLoading && (
+            <p className="text-4xl">Loading...</p>
+          )}
+          <Popover>
+            <ListBox items={filteredItems}>
+              {(result) => (
+                <Item
+                  key={result.target}
+                  className={({ isFocused, isSelected }) =>
+                    `${isFocused ? "focused" : "bg-red-500 px-4"} ${
+                      isSelected ? "selected" : "bg-green-500"
+                    }`
+                  }
+                >
+                  {result.target}
+                </Item>
+              )}
+            </ListBox>
+          </Popover>
+        </ComboBox>
       </form>
     </>
   );
