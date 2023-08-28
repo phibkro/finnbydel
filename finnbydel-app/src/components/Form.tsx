@@ -64,6 +64,8 @@ export default function Form({
     <>
       <form onSubmit={(e) => void handleSubmit(e)} className={className}>
         <ComboBox
+          // Omitting items makes autocomplete turn on and off while typing
+          items={filteredItems}
           inputValue={currentInput}
           onInputChange={setCurrentInput}
           isRequired
@@ -86,7 +88,10 @@ export default function Form({
             <p className="text-4xl">Loading...</p>
           )}
           <Popover>
-            <ListBox items={filteredItems}>
+            <ListBox
+              // Reiterate the items definition to appease the typescript gods
+              items={filteredItems}
+            >
               {(result) => (
                 <Item
                   key={result.target}
