@@ -9,7 +9,7 @@ import { appRouter } from "~/server/api/root";
 import SuperJSON from "superjson";
 
 import { api } from "~/utils/api";
-import Form from "~/components/Form";
+import Form from "~/features/Form";
 import Link from "next/link";
 
 // Generate paths by fetching city names from db
