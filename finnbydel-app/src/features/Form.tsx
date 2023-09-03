@@ -16,25 +16,33 @@ interface FormProps {
   label?: string;
   className: string;
   cityId: number;
-  addressNames: string[] | Fuzzysort.Prepared[];
+  items: {
+    id: number;
+    streetName: string;
+    houseNumber: number;
+    districtName: string;
+    cityId: number;
+  }[];
 }
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form({
-  label,
-  cityId,
-  addressNames,
-  className,
-}: FormProps) {
+export default function Form({ label, cityId, items, className }: FormProps) {
   // Autocomplete filtering logic
   const [currentInput, setCurrentInput] = useState("");
-  const filteredItems = useMemo(
+  const scoredItems = useMemo(
     () =>
-      fuzzysort.go(currentInput, addressNames, {
-        all: false,
-        limit: 10,
-        threshold: -10000,
-      }),
-    [currentInput, addressNames]
+      fuzzysort.go(
+        currentInput,
+        items.map((item) => {
+          // Merge streetname and housenumber for filtering
+          return [item.streetName, item.houseNumber].join(" ");
+        }),
+        {
+          all: false,
+          limit: 10,
+          threshold: -10000,
+        }
+      ),
+    [currentInput, items]
   );
   // Form logic
   const addressQuery = api.address.byAddress.useQuery(
@@ -52,7 +60,9 @@ export default function Form({
     e.preventDefault();
     // Enable the query to execute on form submission
     try {
-      if (filteredItems && filteredItems[0]?.score !== 0) {
+      // Only send request if there is a response
+      if (scoredItems && scoredItems[0]?.score !== 0) {
+        console.log(scoredItems);
         throw new Error("Invalid address");
       }
       await addressQuery.refetch();
@@ -65,12 +75,13 @@ export default function Form({
       <form onSubmit={(e) => void handleSubmit(e)} className={className}>
         <ComboBox
           // Omitting items makes autocomplete turn on and off while typing
-          items={filteredItems}
+          items={scoredItems}
           inputValue={currentInput}
           onInputChange={setCurrentInput}
           isRequired
           autoFocus
           className="flex flex-col gap-2"
+          allowsCustomValue={true}
         >
           <Label>{label}</Label>
           <Input
@@ -90,7 +101,7 @@ export default function Form({
           <Popover>
             <ListBox
               // Reiterate the items definition to appease the typescript gods
-              items={filteredItems}
+              items={scoredItems}
             >
               {(result) => (
                 <Item

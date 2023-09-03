@@ -9,7 +9,7 @@ import { appRouter } from "~/server/api/root";
 import SuperJSON from "superjson";
 
 import { api } from "~/utils/api";
-import Form from "~/components/Form";
+import Form from "~/features/Form";
 import Link from "next/link";
 
 // Generate paths by fetching city names from db
@@ -87,9 +87,6 @@ export default function CityPage(
     return <>Loading...</>;
   }
 
-  const addressNames = addressQuery.data.map(
-    (result) => result.streetName + " " + result.houseNumber.toString()
-  );
   return (
     <>
       <ul>
@@ -110,7 +107,7 @@ export default function CityPage(
       <Form
         cityId={cityId}
         label={"Skriv inn addressen:"}
-        addressNames={addressNames}
+        items={addressQuery.data}
         className={"flex flex-col items-center gap-3 text-xl"}
       ></Form>
     </>
