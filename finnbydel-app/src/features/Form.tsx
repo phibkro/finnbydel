@@ -74,6 +74,7 @@ export default function Form({ label, cityId, items, className }: FormProps) {
           isRequired
           autoFocus
           className="flex flex-col gap-2"
+          allowsCustomValue={true}
         >
           <Label>{label}</Label>
           <Input
