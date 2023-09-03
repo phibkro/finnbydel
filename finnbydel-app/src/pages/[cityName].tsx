@@ -87,9 +87,6 @@ export default function CityPage(
     return <>Loading...</>;
   }
 
-  const addressNames = addressQuery.data.map(
-    (result) => result.streetName + " " + result.houseNumber.toString()
-  );
   return (
     <>
       <ul>
@@ -110,7 +107,7 @@ export default function CityPage(
       <Form
         cityId={cityId}
         label={"Skriv inn addressen:"}
-        addressNames={addressNames}
+        items={addressQuery.data}
         className={"flex flex-col items-center gap-3 text-xl"}
       ></Form>
     </>

@@ -16,25 +16,28 @@ interface FormProps {
   label?: string;
   className: string;
   cityId: number;
-  addressNames: string[] | Fuzzysort.Prepared[];
+  items: {
+    id: number;
+    streetName: string;
+    houseNumber: number;
+    districtName: string;
+    cityId: number;
+  }[];
 }
 /* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form({
-  label,
-  cityId,
-  addressNames,
-  className,
-}: FormProps) {
+export default function Form({ label, cityId, items, className }: FormProps) {
   // Autocomplete filtering logic
   const [currentInput, setCurrentInput] = useState("");
   const filteredItems = useMemo(
     () =>
-      fuzzysort.go(currentInput, addressNames, {
+      fuzzysort.go(currentInput, items, {
         all: false,
         limit: 10,
         threshold: -10000,
+
+        key: "streetName",
       }),
-    [currentInput, addressNames]
+    [currentInput, items]
   );
   // Form logic
   const addressQuery = api.address.byAddress.useQuery(
@@ -94,14 +97,16 @@ export default function Form({
             >
               {(result) => (
                 <Item
-                  key={result.target}
+                  key={result.obj.id}
                   className={({ isFocused, isSelected }) =>
                     `${isFocused ? "focused" : "bg-red-500 px-4"} ${
                       isSelected ? "selected" : "bg-green-500"
                     }`
                   }
                 >
-                  {result.target}
+                  {result.obj.streetName +
+                    " " +
+                    result.obj.houseNumber.toString()}
                 </Item>
               )}
             </ListBox>
