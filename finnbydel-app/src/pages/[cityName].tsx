@@ -20,12 +20,17 @@ function isSupportedCity(name: string): name is SupportedCity {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  // Build pages for every supported city. seed.ts ensures the
-  // matching City rows always exist; data hydration via tRPC is
-  // pure-server — no per-city prefetch of an Address table since
-  // address data comes from Geonorge on demand.
+  // Build pages only for cities that have seeded bydel polygons —
+  // "supported" = "has data". Adding a polygon source in
+  // prisma/seed.ts auto-generates the page on the next deploy.
+  const cities = await prisma.city.findMany({
+    where: { bydeler: { some: {} } },
+    select: { name: true },
+  });
   return {
-    paths: SUPPORTED_CITIES.map((cityName) => ({ params: { cityName } })),
+    paths: cities
+      .filter((c) => isSupportedCity(c.name))
+      .map((c) => ({ params: { cityName: c.name } })),
     fallback: false,
   };
 };

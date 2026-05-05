@@ -16,9 +16,9 @@ import { useEffect, useState } from "react";
 import {
   ComboBox,
   Input,
+  Item,
   Label,
   ListBox,
-  ListBoxItem,
   Popover,
 } from "react-aria-components";
 
@@ -101,7 +101,7 @@ export default function Form({ cityName, className }: FormProps) {
         <Popover>
           <ListBox className="max-h-72 overflow-auto rounded border-2 border-purple-dark bg-white shadow-lg dark:bg-gray-dark">
             {(item) => (
-              <ListBoxItem
+              <Item
                 id={item.adressetekst}
                 textValue={item.adressetekst}
                 className={({ isFocused, isSelected }) =>
@@ -112,7 +112,7 @@ export default function Form({ cityName, className }: FormProps) {
                 <div className="text-sm opacity-70">
                   {item.postnummer} {item.poststed}
                 </div>
-              </ListBoxItem>
+              </Item>
             )}
           </ListBox>
         </Popover>

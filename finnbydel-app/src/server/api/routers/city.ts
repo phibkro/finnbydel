@@ -3,8 +3,14 @@ import { cityIdSchema, varCharSchema } from "~/server/zodSchemas";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const cityRouter = createTRPCRouter({
+  // Only return cities that have at least one bydel polygon seeded
+  // — "supported" = "has data". Adding a polygon source for a new
+  // city in prisma/seed.ts auto-enables it across the UI on the
+  // next deploy with no further code change.
   all: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.city.findMany();
+    return ctx.prisma.city.findMany({
+      where: { bydeler: { some: {} } },
+    });
   }),
   byId: publicProcedure
     .input(
