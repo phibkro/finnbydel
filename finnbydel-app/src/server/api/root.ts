@@ -1,18 +1,25 @@
 import { addressRouter } from "./routers/address";
-import { createTRPCRouter } from "~/server/api/trpc";
+import { bydelRouter } from "./routers/bydel";
 import { cityRouter } from "./routers/city";
-import { districtRouter } from "./routers/district";
+import { createTRPCRouter } from "~/server/api/trpc";
 
 /**
- * This is the primary router for your server.
+ * Primary tRPC router.
  *
- * All routers added in /api/routers should be manually added here.
+ *   address.search   — autocomplete suggestions (Geonorge proxy);
+ *                      drives the address input on the form.
+ *   bydel.byAddress  — given a finalised address + city, return its
+ *                      bydel via PIP against seeded polygons.
+ *   city.*           — list/lookup the 4 supported cities.
+ *
+ * Old bulk-Address-table architecture is gone — both `address.search`
+ * and `bydel.byAddress` are on-demand against Geonorge's APIs, no
+ * local mirror.
  */
 export const appRouter = createTRPCRouter({
   address: addressRouter,
+  bydel: bydelRouter,
   city: cityRouter,
-  district: districtRouter,
 });
 
-// export type definition of API
 export type AppRouter = typeof appRouter;

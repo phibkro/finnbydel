@@ -1,5 +1,16 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Schema for the bydel-lookup architecture:
+//   * City — the 4 supported cities (Oslo, Bergen, Trondheim, Stavanger).
+//   * Bydel — administrative borough polygons. GeoJSON stored as text;
+//     bounding-box columns enable cheap pre-filter before exact PIP.
+//
+// Lookup flow (see src/server/api/routers/bydel.ts):
+//   1. Address-string → Geonorge `/adresser/v1/sok` → coords (lat/lon).
+//   2. coords → bbox-prefiltered Bydel candidates → exact JS-side PIP
+//      (turf) → matching bydel name.
+//
+// Old Address table (with bulk-seeded street/district fields) is gone —
+// the PIP approach reads addresses on-demand from Geonorge's open API
+// instead of mirroring the entire registry locally.
 
 datasource db {
     provider = "sqlite"
@@ -11,36 +22,29 @@ generator client {
 }
 
 model City {
-    id   Int    @id @unique @default(autoincrement())
-    name String
-
-    districts District[]
-    addresses Address[]
+    id      Int     @id @default(autoincrement())
+    name    String  @unique // "Oslo", "Bergen", "Trondheim", "Stavanger"
+    bydeler Bydel[]
 }
 
-model District {
-    id   Int    @id @unique @default(autoincrement())
-    name String @unique
-
-    city   City @relation(fields: [cityId], references: [id])
+model Bydel {
+    id     Int    @id @default(autoincrement())
+    name   String
     cityId Int
+    city   City   @relation(fields: [cityId], references: [id])
 
-    addresses Address[]
+    // GeoJSON Polygon or MultiPolygon, JSON-stringified. Read by
+    // @turf/boolean-point-in-polygon at lookup time.
+    geometryJson String
 
-    @@index([cityId])
-}
+    // Bounding box for cheap pre-filter — narrows ~10 candidates to
+    // ~1 before running expensive PIP. Coordinates in WGS84 / EPSG:4258
+    // (lon = X, lat = Y). Geonorge returns EPSG:4258 by default.
+    minLon Float
+    minLat Float
+    maxLon Float
+    maxLat Float
 
-model Address {
-    id          Int    @id @unique @default(autoincrement())
-    streetName  String
-    houseNumber Int
-
-    district     District @relation(fields: [districtName], references: [name])
-    districtName String
-
-    city   City @relation(fields: [cityId], references: [id])
-    cityId Int
-
-    @@index([districtName])
+    @@unique([cityId, name])
     @@index([cityId])
 }

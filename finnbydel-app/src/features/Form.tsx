@@ -1,143 +1,141 @@
-import { useState, useMemo } from "react";
-import type { FormEvent } from "react";
-import fuzzysort from "fuzzysort";
-import { api } from "~/utils/api";
+/**
+ * Form — address autocomplete + bydel lookup for one city.
+ *
+ * Flow:
+ *   1. User types an address.
+ *   2. Debounced query (250ms) calls `address.search` → list of
+ *      Geonorge suggestions filtered to the chosen city.
+ *   3. On selection, store the suggestion (with its lat/lon) and
+ *      call `bydel.byCoords` to look up the matching bydel polygon.
+ *      Skipping `bydel.byAddress` saves a redundant Geonorge call
+ *      since the suggestion already carries coords.
+ *   4. Display result.
+ */
 
+import { useEffect, useState } from "react";
 import {
   ComboBox,
   Input,
-  Item,
   Label,
   ListBox,
+  ListBoxItem,
   Popover,
 } from "react-aria-components";
 
+import { api } from "~/utils/api";
+
+type SupportedCity = "Oslo" | "Bergen" | "Trondheim" | "Stavanger";
+
 interface FormProps {
-  label?: string;
-  className: string;
-  cityId: number;
-  items: {
-    id: number;
-    streetName: string;
-    houseNumber: number;
-    districtName: string;
-    cityId: number;
-  }[];
+  cityName: SupportedCity;
+  className?: string;
 }
-/* TODO: See if Form needs refactoring/decoupling as its quite messy */
-export default function Form({ label, cityId, items, className }: FormProps) {
-  // Autocomplete filtering logic
-  const [currentInput, setCurrentInput] = useState("");
-  const scoredItems = useMemo(
-    () =>
-      fuzzysort.go(
-        currentInput,
-        items.map((item) => {
-          // Merge streetname and housenumber for filtering
-          return [item.streetName, item.houseNumber].join(" ");
-        }),
-        {
-          all: false,
-          limit: 10,
-          threshold: -10000,
-        }
-      ),
-    [currentInput, items]
-  );
-  // Form logic
-  const addressQuery = api.address.byAddress.useQuery(
+
+export default function Form({ cityName, className }: FormProps) {
+  const [inputValue, setInputValue] = useState("");
+  const [debouncedInput, setDebouncedInput] = useState("");
+  const [selected, setSelected] = useState<{
+    adressetekst: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
+
+  // Debounce input → query (250ms).
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedInput(inputValue), 250);
+    return () => clearTimeout(handle);
+  }, [inputValue]);
+
+  const suggestionsQuery = api.address.search.useQuery(
+    { city: cityName, query: debouncedInput },
     {
-      cityId: Number(cityId),
-      houseNumber: parseHouseNumber(currentInput),
-      streetName: parseStreetName(currentInput),
+      enabled: debouncedInput.trim().length >= 2,
+      keepPreviousData: true, // smoother UX while typing
+      staleTime: 60_000, // dedupe same prefix within 1min
+      retry: false,
     },
+  );
+
+  const bydelQuery = api.bydel.byCoords.useQuery(
+    selected ? { city: cityName, lat: selected.lat, lon: selected.lon } : { city: cityName, lat: 0, lon: 0 },
     {
-      enabled: false, // Disable initial query execution
-      retry: false, // Disable automatic retry
-    }
+      enabled: selected !== null,
+      retry: false,
+    },
   );
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Enable the query to execute on form submission
-    try {
-      // Only send request if there is a response
-      if (scoredItems && scoredItems[0]?.score !== 0) {
-        console.log(scoredItems);
-        throw new Error("Invalid address");
-      }
-      await addressQuery.refetch();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
+  const items = suggestionsQuery.data ?? [];
+
   return (
-    <>
-      <form onSubmit={(e) => void handleSubmit(e)} className={className}>
-        <ComboBox
-          // Omitting items makes autocomplete turn on and off while typing
-          items={scoredItems}
-          inputValue={currentInput}
-          onInputChange={setCurrentInput}
-          isRequired
-          autoFocus
-          className="flex flex-col gap-2"
-          allowsCustomValue={true}
-        >
-          <Label>{label}</Label>
-          <Input
-            className="border-2 border-purple-dark p-1.5 px-4 text-purple-dark hover:border-blue-dark focus-visible:border-4 focus-visible:border-blue-dark focus-visible:p-1 focus-visible:px-3.5  focus-visible:outline-none"
-            placeholder="Søk etter addresse"
-            autoComplete="street-address"
-          />
-          {addressQuery.data && (
-            <p className="text-4xl">{addressQuery.data.districtName}</p>
-          )}
-          {addressQuery.error && (
-            <p className="text-4xl">{addressQuery.error.message}</p>
-          )}
-          {addressQuery.isInitialLoading && (
-            <p className="text-4xl">Loading...</p>
-          )}
-          <Popover>
-            <ListBox
-              // Reiterate the items definition to appease the typescript gods
-              items={scoredItems}
-            >
-              {(result) => (
-                <Item
-                  key={result.target}
-                  className={({ isFocused, isSelected }) =>
-                    `${isFocused ? "focused" : "bg-red-500 px-4"} ${
-                      isSelected ? "selected" : "bg-green-500"
-                    }`
-                  }
-                >
-                  {result.target}
-                </Item>
-              )}
-            </ListBox>
-          </Popover>
-        </ComboBox>
-      </form>
-    </>
+    <div className={className}>
+      <ComboBox
+        inputValue={inputValue}
+        onInputChange={(v) => {
+          setInputValue(v);
+          // Typing again clears the previous selection.
+          if (selected !== null) setSelected(null);
+        }}
+        onSelectionChange={(key) => {
+          if (key === null) return;
+          const match = items.find((it) => it.adressetekst === key);
+          if (match) {
+            setSelected({
+              adressetekst: match.adressetekst,
+              lat: match.lat,
+              lon: match.lon,
+            });
+            setInputValue(match.adressetekst);
+          }
+        }}
+        items={items.map((it) => ({ ...it, id: it.adressetekst }))}
+        allowsCustomValue
+        autoFocus
+        className="flex flex-col gap-2"
+      >
+        <Label>Skriv inn adressen:</Label>
+        <Input
+          className="border-2 border-purple-dark p-1.5 px-4 text-purple-dark hover:border-blue-dark focus-visible:border-4 focus-visible:border-blue-dark focus-visible:p-1 focus-visible:px-3.5 focus-visible:outline-none"
+          placeholder="Søk etter adresse"
+          autoComplete="street-address"
+        />
+        <Popover>
+          <ListBox className="max-h-72 overflow-auto rounded border-2 border-purple-dark bg-white shadow-lg dark:bg-gray-dark">
+            {(item) => (
+              <ListBoxItem
+                id={item.adressetekst}
+                textValue={item.adressetekst}
+                className={({ isFocused, isSelected }) =>
+                  `cursor-pointer px-4 py-1.5 ${isFocused ? "bg-blue-light dark:bg-gray-darkdark" : ""} ${isSelected ? "font-bold" : ""}`
+                }
+              >
+                <div>{item.adressetekst}</div>
+                <div className="text-sm opacity-70">
+                  {item.postnummer} {item.poststed}
+                </div>
+              </ListBoxItem>
+            )}
+          </ListBox>
+        </Popover>
+      </ComboBox>
+
+      {/* Result panel */}
+      <div className="mt-4">
+        {selected && bydelQuery.isLoading && <p className="text-2xl">Slår opp bydel…</p>}
+        {selected && bydelQuery.data?.bydel && (
+          <p className="text-3xl">
+            <span className="opacity-70">{selected.adressetekst} ligger i </span>
+            <strong>{bydelQuery.data.bydel}</strong>
+          </p>
+        )}
+        {selected && bydelQuery.data && bydelQuery.data.bydel === null && (
+          <p className="text-2xl opacity-70">
+            {bydelQuery.data.reason === "no_polygon_match"
+              ? `Fant ingen bydel for denne adressen i ${cityName}. Bydelsdata for ${cityName} er kanskje ikke ferdig konfigurert ennå.`
+              : "Ukjent feil ved oppslag."}
+          </p>
+        )}
+        {bydelQuery.error && <p className="text-2xl">Feil: {bydelQuery.error.message}</p>}
+      </div>
+    </div>
   );
-}
-
-function parseHouseNumber(addressQuery: string): number {
-  const infoArray = addressQuery.trim().split(" ");
-  if (infoArray.length >= 2) {
-    const houseNumber = Number(infoArray[infoArray.length - 1]);
-    if (!isNaN(houseNumber)) {
-      return houseNumber;
-    }
-  }
-  return 1;
-}
-
-function parseStreetName(addressQuery: string): string {
-  const infoArray = addressQuery.trim().split(" ");
-  if (infoArray.length >= 2) {
-    return infoArray.slice(0, -1).join(" ");
-  }
-  return addressQuery;
 }

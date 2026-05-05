@@ -9,6 +9,9 @@
     "lint": "next lint",
     "start": "next start"
   },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "@t3-oss/env-nextjs": "^0.3.1",
@@ -17,6 +20,9 @@
     "@trpc/next": "^10.26.0",
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
+    "@turf/bbox": "^7.0.0",
+    "@turf/boolean-point-in-polygon": "^7.0.0",
+    "@turf/helpers": "^7.0.0",
     "fuzzysort": "^2.0.4",
     "next": "^13.4.2",
     "react": "18.2.0",
