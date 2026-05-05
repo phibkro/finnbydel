@@ -26,6 +26,18 @@ import { api } from "~/utils/api";
 
 type SupportedCity = "Oslo" | "Bergen" | "Trondheim" | "Stavanger";
 
+// Render-row shape for the autocomplete list. id is required by
+// react-aria-components' collection types; we use adressetekst as
+// the natural unique key.
+type Row = {
+  id: string;
+  adressetekst: string;
+  postnummer: string;
+  poststed: string;
+  lat: number;
+  lon: number;
+};
+
 interface FormProps {
   cityName: SupportedCity;
   className?: string;
@@ -64,7 +76,10 @@ export default function Form({ cityName, className }: FormProps) {
     },
   );
 
-  const items = suggestionsQuery.data ?? [];
+  const items: Row[] = (suggestionsQuery.data ?? []).map((it) => ({
+    ...it,
+    id: it.adressetekst,
+  }));
 
   return (
     <div className={className}>
@@ -87,7 +102,7 @@ export default function Form({ cityName, className }: FormProps) {
             setInputValue(match.adressetekst);
           }
         }}
-        items={items.map((it) => ({ ...it, id: it.adressetekst }))}
+        items={items}
         allowsCustomValue
         autoFocus
         className="flex flex-col gap-2"
@@ -99,7 +114,10 @@ export default function Form({ cityName, className }: FormProps) {
           autoComplete="street-address"
         />
         <Popover>
-          <ListBox className="max-h-72 overflow-auto rounded border-2 border-purple-dark bg-white shadow-lg dark:bg-gray-dark">
+          <ListBox<Row>
+            items={items}
+            className="max-h-72 overflow-auto rounded border-2 border-purple-dark bg-white shadow-lg dark:bg-gray-dark"
+          >
             {(item) => (
               <Item
                 id={item.adressetekst}
