@@ -1,0 +1,31 @@
+---
+import Base from "@/layouts/Base.astro";
+import { SUPPORTED_CITIES } from "@/lib/cities.ts";
+
+// At build time we only know the four supported cities. The
+// `/api/cities` endpoint will tell the runtime which actually have
+// seeded polygons; we render all four here and let the city pages
+// surface "no polygon match" if the user picks a city without data
+// (currently Trondheim + Stavanger).
+---
+
+<Base>
+  <div
+    class="flex flex-col items-center gap-2 bg-gray-light p-5 dark:bg-gray-dark"
+  >
+    <h2 class="bg-blue-light p-2 text-3xl dark:bg-gray-darkdark">
+      Hvilken by ligger adressen i?
+    </h2>
+    <ul class="flex flex-wrap justify-center gap-4">
+      {
+        SUPPORTED_CITIES.map((city) => (
+          <li class="text-3xl">
+            <a href={`/${city}`} class="hover:text-blue-dark">
+              {city}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Base>

@@ -1,0 +1,31 @@
+{
+  "name": "finnbydel-server",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun --watch run src/index.ts",
+    "start": "bun run src/index.ts",
+    "migrate": "prisma db push",
+    "seed": "bun run prisma/seed.ts",
+    "prisma:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@prisma/client": "^6.0.0",
+    "@turf/bbox": "^7.2.0",
+    "@turf/boolean-point-in-polygon": "^7.2.0",
+    "@turf/helpers": "^7.2.0",
+    "hono": "^4.6.14",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.5",
+    "prisma": "^6.0.0",
+    "typescript": "^5.7.3"
+  }
+}

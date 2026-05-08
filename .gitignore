@@ -2,3 +2,26 @@
 /vite_prototype
 /database
 /.vscode
+
+# dependencies
+node_modules/
+
+# build output
+app/dist/
+app/.astro/
+server/dist/
+
+# env
+.env
+.env.local
+
+# state
+*.db
+*.db-journal
+.direnv/
+.claude/
+result
+result-*
+
+# logs
+npm-debug.log*

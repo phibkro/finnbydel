@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Oslo kommune-inspired palette (preserved from the original
+     Next.js project) */
+  --color-blue-light: #b3f5ff;
+  --color-blue-dark: #1f42aa;
+  --color-blue-darkdark: #00171a;
+  --color-purple-dark: #2a2859;
+  --color-gray-light: #f9f9f9;
+  --color-gray-dark: #212121;
+  --color-gray-darkdark: #1d1d1d;
+  --color-yellow-medium: #f9c66b;
+  --color-black-kinda: #0e0e0e;
+}
+
+@layer base {
+  body {
+    background: white;
+    color: var(--color-purple-dark);
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background: var(--color-black-kinda);
+      color: white;
+    }
+  }
+}

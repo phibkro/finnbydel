@@ -1,0 +1,39 @@
+---
+import Base from "@/layouts/Base.astro";
+import Form from "@/components/Form.tsx";
+import { SUPPORTED_CITIES, isSupportedCity } from "@/lib/cities.ts";
+
+export function getStaticPaths() {
+  return SUPPORTED_CITIES.map((city) => ({ params: { city } }));
+}
+
+const { city } = Astro.params;
+if (!city || !isSupportedCity(city)) {
+  // `getStaticPaths` already constrains the value, but TS doesn't
+  // narrow `Astro.params.city` from that — re-check + throw.
+  throw new Error(`Unknown city: ${city}`);
+}
+
+const title = `${city} — finnbydel`;
+const description = `Finn bydelen din i ${city}.`;
+---
+
+<Base title={title} description={description}>
+  <ul class="flex flex-wrap justify-center gap-4">
+    {
+      SUPPORTED_CITIES.map((c) => (
+        <li class={`text-3xl ${c === city ? "text-pink-600" : ""}`}>
+          <a href={`/${c}`} class="hover:text-blue-dark">
+            {c}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <hr class="w-full border-2" />
+  <Form
+    cityName={city}
+    className="flex w-96 max-w-full flex-col items-stretch gap-3 text-xl"
+    client:load
+  />
+</Base>
