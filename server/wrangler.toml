@@ -14,6 +14,16 @@ main = "src/index.ts"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom domain. `custom_domain = true` makes wrangler manage the
+# DNS record + Worker binding atomically — single source of truth
+# in this file, no dashboard click-through needed. Lives at top
+# level (TOML rules: this would be parsed as a member of
+# [[d1_databases]] if it followed that block without a new section
+# header).
+routes = [
+  { pattern = "finnbydel-api.phibkro.org", custom_domain = true },
+]
+
 # D1 binding — wrangler injects this as `env.DB` in the fetch
 # handler. The uuid pins the binding to the actual D1 database;
 # created 2024-09-21 via the dashboard.
@@ -22,13 +32,6 @@ binding = "DB"
 database_name = "finnbydel-db"
 database_id = "55a7e736-4299-4022-9792-955f1f702997"
 migrations_dir = "migrations"
-
-# Production worker route — finnbydel-api.phibkro.org.
-# The custom domain is configured in the CF dashboard
-# (Workers & Pages → finnbydel-server → Settings → Triggers →
-# Custom Domains). Wrangler doesn't manage this; doing it via
-# the dashboard once is simpler than maintaining the routes
-# block here against the zone.
 
 [observability]
 enabled = true
