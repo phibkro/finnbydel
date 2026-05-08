@@ -1,3 +1,5 @@
+import "./sentry.ts"; // must run before any other code so it can patch globals
+
 import { serve } from "@hono/node-server";
 import { eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
