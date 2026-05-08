@@ -1,12 +1,15 @@
 import { serve } from "@hono/node-server";
+import { eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { z } from "zod";
 
+import { db, schema } from "./db/index.ts";
 import { cityEnum } from "./lib/cities.ts";
 import { searchAddresses } from "./lib/geonorge.ts";
 import { lookupBydel } from "./lib/lookup.ts";
-import { prisma } from "./prisma.ts";
+
+const { bydeler, cities: citiesTbl } = schema;
 
 const app = new Hono();
 
@@ -29,12 +32,18 @@ app.use(
 // in prisma/seed.ts auto-enables it across the UI on the next
 // deploy with no further code change.
 app.get("/api/cities", async (c) => {
-  const cities = await prisma.city.findMany({
-    where: { bydeler: { some: {} } },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
-  return c.json(cities);
+  // Cities with at least one bydel polygon — `inArray` against a
+  // subquery that selects distinct cityIds from Bydel. SQLite's
+  // query planner picks the cityId index for the inner select.
+  const cityIdsWithBydeler = db
+    .selectDistinct({ id: bydeler.cityId })
+    .from(bydeler);
+  const result = await db
+    .select({ id: citiesTbl.id, name: citiesTbl.name })
+    .from(citiesTbl)
+    .where(inArray(citiesTbl.id, cityIdsWithBydeler))
+    .orderBy(citiesTbl.name);
+  return c.json(result);
 });
 
 // ── /api/cities/:city/bydeler — list bydeler in a city. Used by
@@ -44,12 +53,23 @@ app.get("/api/cities/:city/bydeler", async (c) => {
   const cityParse = cityEnum.safeParse(c.req.param("city"));
   if (!cityParse.success) return c.json({ error: "unsupported city" }, 400);
 
-  const bydeler = await prisma.bydel.findMany({
-    where: { city: { name: cityParse.data } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
-  return c.json(bydeler);
+  // Resolve city id first then filter bydeler — single index hit
+  // each, cleaner than the join on this 2-table cardinality.
+  const city = (
+    await db
+      .select({ id: citiesTbl.id })
+      .from(citiesTbl)
+      .where(eq(citiesTbl.name, cityParse.data))
+      .limit(1)
+  )[0];
+  if (!city) return c.json([]);
+
+  const result = await db
+    .select({ id: bydeler.id, name: bydeler.name })
+    .from(bydeler)
+    .where(eq(bydeler.cityId, city.id))
+    .orderBy(bydeler.name);
+  return c.json(result);
 });
 
 // ── /api/cities/:city/addresses?q=… — autocomplete proxy to
