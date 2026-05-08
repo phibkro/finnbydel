@@ -2,28 +2,26 @@
  * Seed Norwegian bydel polygons from public sources (Kartverket /
  * per-city open-data portals).
  *
- * Runs at deploy time via `bun run src/seed.ts` — invoked by the
- * homelab finnbydel-build.service after the migrate step succeeds.
- * Idempotent: upserts on (cityId, name); existing rows updated with
- * fresh polygons on every deploy.
+ * Workers + D1 model: this script runs *locally* via `bun run
+ * src/seed.ts`, fetches all GeoJSON, and emits a `seed.sql` file
+ * with INSERT-OR-REPLACE statements. The operator then applies it
+ * to the remote D1 database with:
  *
- * ── Data sources ────────────────────────────────────────────────
- * Bydel polygon data is published per-city, not as a unified
- * Kartverket dataset. Operator fills in CITY_SOURCES below with
- * the actual download URLs from each city's open-data portal or
- * kartkatalog.geonorge.no.
+ *   wrangler d1 execute finnbydel-db --remote --file=seed.sql
+ *
+ * Idempotent — re-running regenerates the SQL with the latest
+ * polygons; the INSERT OR REPLACE syntax updates rows in place
+ * via the (cityId, name) unique index.
  *
  * ── Attribution (Kartverket CC BY 4.0) ──────────────────────────
  * Display "©Kartverket" with link to https://kartverket.no in the
  * frontend. Component: app/src/components/Attribution.astro.
  */
 
+import { writeFileSync } from "node:fs";
+
 import bbox from "@turf/bbox";
-import { and, eq } from "drizzle-orm";
-
-import { db, schema } from "./db/index.ts";
-
-const { bydeler, cities } = schema;
+import simplify from "@turf/simplify";
 
 type FeatureCollection = {
 	type: "FeatureCollection";
@@ -37,10 +35,6 @@ type FeatureCollection = {
 type CitySource = {
 	city: string;
 	url: string;
-	// Property name on each feature that holds the bydel's display
-	// name. Varies by municipality — Oslo "bydelsnavn", Bergen
-	// "BYDEL", others may use "navn" / "BYDELNAVN" / etc. Inspect
-	// the first feature manually.
 	nameProperty: string;
 };
 
@@ -55,12 +49,9 @@ const CITY_SOURCES: CitySource[] = [
 		url: "https://kart.bergen.kommune.no/arcgis/rest/services/Basis_kartdata/Bydeler/MapServer/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326",
 		nameProperty: "BYDEL",
 	},
-	// Trondheim + Stavanger TBD — see prisma/seed.ts in git history
-	// (pre-Drizzle) for the source-search notes.
 ];
 
-const USER_AGENT = "finnbydel-seed/0.2 (+https://finnbydel.phibkro.org)";
-
+const USER_AGENT = "finnbydel-seed/0.3 (+https://finnbydel.phibkro.org)";
 const ALL_SUPPORTED_CITIES = ["Oslo", "Bergen", "Trondheim", "Stavanger"];
 
 async function fetchGeoJson(url: string): Promise<FeatureCollection> {
@@ -78,26 +69,33 @@ async function fetchGeoJson(url: string): Promise<FeatureCollection> {
 	return response.json() as Promise<FeatureCollection>;
 }
 
-// Upsert a city by unique name. SQLite's INSERT ... ON CONFLICT (sql
-// terms) maps to drizzle's onConflictDoUpdate.
-async function upsertCity(name: string): Promise<{ id: number }> {
-	const [row] = await db
-		.insert(cities)
-		.values({ name })
-		.onConflictDoUpdate({
-			target: cities.name,
-			set: { name },
-		})
-		.returning({ id: cities.id });
-	if (!row) throw new Error(`failed to upsert city ${name}`);
-	return row;
+// Escape single quotes by doubling — SQLite's standard string
+// literal escape.
+function sql(s: string): string {
+	return `'${s.replace(/'/g, "''")}'`;
 }
 
-async function loadCity(source: CitySource): Promise<void> {
-	console.log(`[seed] ${source.city}: fetching ${source.url}`);
-	const fc = await fetchGeoJson(source.url);
+const lines: string[] = [
+	"-- finnbydel polygon seed — generated from open ArcGIS sources",
+	"-- by src/seed.ts. INSERT OR REPLACE is idempotent against the",
+	"-- (City.name) and (Bydel.cityId, Bydel.name) unique indexes.",
+	"",
+];
 
-	const cityRow = await upsertCity(source.city);
+for (const name of ALL_SUPPORTED_CITIES) {
+	lines.push(`INSERT OR IGNORE INTO "City" ("name") VALUES (${sql(name)});`);
+}
+lines.push("");
+
+for (const source of CITY_SOURCES) {
+	console.log(`[seed] ${source.city}: fetching ${source.url}`);
+	let fc: FeatureCollection;
+	try {
+		fc = await fetchGeoJson(source.url);
+	} catch (err) {
+		console.error(`[seed] ${source.city}: ${(err as Error).message}`);
+		continue;
+	}
 
 	let count = 0;
 	for (const feature of fc.features) {
@@ -116,60 +114,41 @@ async function loadCity(source: CitySource): Promise<void> {
 			number,
 		];
 
-		const geometryJson = JSON.stringify(feature.geometry);
+		// Simplify polygons + round coordinates. Some raw bydel
+		// polygons are >100 KB JSON-stringified, over D1's per-
+		// statement size limit (SQLITE_TOOBIG). Douglas-Peucker
+		// simplification at 0.0002 degrees (~22 m tolerance) +
+		// rounding to 4 decimals (~11 m grid) keeps borough
+		// boundaries visually accurate while shrinking the JSON
+		// 5–10×. PIP results are unaffected at the relevant
+		// "which neighborhood is this address in" precision.
+		const simplified = simplify(feature, { tolerance: 0.0002, highQuality: false });
+		const round = (n: number) => Math.round(n * 1e4) / 1e4;
+		const roundCoords = (
+			coords: GeoJSON.Position[] | GeoJSON.Position[][] | GeoJSON.Position[][][],
+		): unknown => {
+			if (typeof coords[0] === "number") {
+				return (coords as GeoJSON.Position).map(round);
+			}
+			return (coords as unknown[]).map((c) => roundCoords(c as GeoJSON.Position[]));
+		};
+		const rounded = {
+			...simplified.geometry,
+			coordinates: roundCoords(simplified.geometry.coordinates),
+		};
+		const geometryJson = JSON.stringify(rounded);
 
-		// Drizzle's onConflictDoUpdate matches by the unique index
-		// (cityId, name) we created in migrate.ts.
-		await db
-			.insert(bydeler)
-			.values({
-				name,
-				cityId: cityRow.id,
-				geometryJson,
-				minLon,
-				minLat,
-				maxLon,
-				maxLat,
-			})
-			.onConflictDoUpdate({
-				target: [bydeler.cityId, bydeler.name],
-				set: { geometryJson, minLon, minLat, maxLon, maxLat },
-			});
+		lines.push(
+			`INSERT OR REPLACE INTO "Bydel" ("name", "cityId", "geometryJson", "minLon", "minLat", "maxLon", "maxLat") VALUES (${sql(name)}, (SELECT id FROM "City" WHERE name = ${sql(source.city)}), ${sql(geometryJson)}, ${minLon}, ${minLat}, ${maxLon}, ${maxLat});`,
+		);
 		count += 1;
 	}
-
-	console.log(`[seed] ${source.city}: ${count} bydeler upserted`);
+	console.log(`[seed] ${source.city}: ${count} bydeler`);
+	lines.push("");
 }
 
-async function main(): Promise<void> {
-	// Always seed the 4 supported city rows even if the corresponding
-	// polygon source isn't wired yet — lets the frontend's per-city
-	// page route build successfully; the bydel lookup just returns
-	// `no_polygon_match` for cities without polygons until their
-	// source is added.
-	for (const name of ALL_SUPPORTED_CITIES) {
-		await upsertCity(name);
-	}
-
-	if (CITY_SOURCES.length === 0) {
-		console.log(
-			"[seed] CITY_SOURCES empty — only base City rows seeded, no polygons.",
-		);
-		return;
-	}
-	for (const source of CITY_SOURCES) {
-		try {
-			await loadCity(source);
-		} catch (err) {
-			// Don't abort the whole seed because one city's URL is
-			// dead; log and continue so other cities still load.
-			console.error(`[seed] ${source.city}: ${(err as Error).message}`);
-		}
-	}
-}
-
-await main();
-console.log("[seed] complete");
-// Avoid unused-binding warning if the env query helper is added later.
-void and;
-void eq;
+writeFileSync("seed.sql", lines.join("\n") + "\n");
+console.log(`[seed] wrote seed.sql (${lines.length} lines)`);
+console.log(
+	"[seed] apply with: wrangler d1 execute finnbydel-db --remote --file=seed.sql",
+);

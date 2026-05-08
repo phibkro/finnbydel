@@ -1,0 +1,34 @@
+# finnbydel-server — Hono + Drizzle + D1 on Cloudflare Workers.
+#
+# Migrations live in ./migrations/ and are applied via:
+#   wrangler d1 migrations apply finnbydel-db --remote
+#
+# Deploy:
+#   wrangler deploy
+#
+# Local dev (uses a local sqlite shim for D1):
+#   wrangler dev
+
+name = "finnbydel-server"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 binding — wrangler injects this as `env.DB` in the fetch
+# handler. The uuid pins the binding to the actual D1 database;
+# created 2024-09-21 via the dashboard.
+[[d1_databases]]
+binding = "DB"
+database_name = "finnbydel-db"
+database_id = "55a7e736-4299-4022-9792-955f1f702997"
+migrations_dir = "migrations"
+
+# Production worker route — finnbydel-api.phibkro.org.
+# The custom domain is configured in the CF dashboard
+# (Workers & Pages → finnbydel-server → Settings → Triggers →
+# Custom Domains). Wrangler doesn't manage this; doing it via
+# the dashboard once is simpler than maintaining the routes
+# block here against the zone.
+
+[observability]
+enabled = true

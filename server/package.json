@@ -1,28 +1,30 @@
 {
   "name": "finnbydel-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "bun --watch run src/index.ts",
-    "start": "bun run src/index.ts",
-    "migrate": "bun run src/migrate.ts",
-    "seed": "bun run src/seed.ts"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate": "wrangler d1 migrations apply finnbydel-db --remote",
+    "migrate:local": "wrangler d1 migrations apply finnbydel-db --local",
+    "seed": "bun run src/seed.ts",
+    "tail": "wrangler tail"
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.0",
-    "@sentry/bun": "^10.52.0",
     "@turf/bbox": "^7.2.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
     "@turf/helpers": "^7.2.0",
+    "@turf/simplify": "^7.3.5",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.6.14",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.0.0",
-    "bun-types": "^1.3.13",
-    "typescript": "^6.0.0"
+    "@cloudflare/workers-types": "^4.20260508.1",
+    "@types/node": "^25.6.2",
+    "typescript": "^6.0.0",
+    "wrangler": "^4.90.0"
   }
 }
