@@ -15,7 +15,7 @@
     "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
+    "@hono/node-server": "^2.0.0",
     "@prisma/client": "^6.0.0",
     "@turf/bbox": "^7.2.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
