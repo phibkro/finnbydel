@@ -1,0 +1,71 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeDigest"
+  ],
+  "schedule": ["before 5am on monday"],
+  "timezone": "Europe/Oslo",
+  "labels": ["renovate"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 5am on the first day of the month"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true,
+    "labels": ["renovate", "security"],
+    "schedule": []
+  },
+  "packageRules": [
+    {
+      "description": "Auto-merge patch-level updates that pass CI",
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Auto-merge minor bumps for type packages",
+      "matchPackageNames": ["/^@types\\//"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Auto-merge minor bumps for dev tooling + Tailwind/Astro side-packages",
+      "matchPackageNames": [
+        "typescript",
+        "@astrojs/check",
+        "@astrojs/sitemap",
+        "@tailwindcss/vite",
+        "tailwindcss"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Astro + React + Prisma + Hono major bumps need a human",
+      "matchPackageNames": [
+        "astro",
+        "react",
+        "react-dom",
+        "react-aria-components",
+        "@astrojs/react",
+        "prisma",
+        "@prisma/client",
+        "hono",
+        "@hono/node-server"
+      ],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["renovate", "manual-review"]
+    },
+    {
+      "description": "Group all minor + patch dev deps into one PR",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies"
+    }
+  ]
+}
