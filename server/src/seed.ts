@@ -128,7 +128,7 @@ for (const source of CITY_SOURCES) {
 			coords: GeoJSON.Position[] | GeoJSON.Position[][] | GeoJSON.Position[][][],
 		): unknown => {
 			if (typeof coords[0] === "number") {
-				return (coords as GeoJSON.Position).map(round);
+				return (coords as unknown as GeoJSON.Position).map(round);
 			}
 			return (coords as unknown[]).map((c) => roundCoords(c as GeoJSON.Position[]));
 		};

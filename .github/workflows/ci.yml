@@ -24,11 +24,6 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: bunx prisma generate
-        env:
-          DATABASE_URL: file:./prisma/ci.db
-
       - name: Type check
         run: bunx tsc --noEmit
 
