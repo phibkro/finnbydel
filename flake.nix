@@ -1,5 +1,5 @@
 {
-  description = "finnbydel — neighborhood marketplace (T3 stack: Next.js + tRPC + Prisma)";
+  description = "Finnbydel — Astro site and Hono API on Cloudflare";
 
   inputs = {
     lab.url = "github:phibkro/homelab";

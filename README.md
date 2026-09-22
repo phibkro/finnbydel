@@ -10,12 +10,10 @@ Live: https://finnbydel.phibkro.org
 
 - **Frontend** (`app/`) — Astro static + React islands. Tailwind v4.
   Form uses `react-aria-components` for accessible autocomplete.
-- **Backend** (`server/`) — Hono on Bun. Prisma over SQLite for the
-  polygon store. zod for input validation. `@turf` for point-in-
-  polygon geometry.
-- **Build / deploy** — managed by the operator's homelab flake at
-  [phibkro/homelab](https://github.com/phibkro/homelab) — see
-  `modules/server/finnbydel.nix`.
+- **Backend** (`server/`) — Hono and Drizzle on a Cloudflare Worker.
+  The polygon store uses the existing D1 database.
+- **Build and deploy** — Alchemy owns both Workers, both domains, and D1.
+  The homelab does not build or serve this application.
 
 ## Layout
 
@@ -34,18 +32,19 @@ finnbydel/
 │   │   │   └── cities.ts
 │   │   └── styles/globals.css
 │   └── public/
-├── server/                  # Hono + Prisma + zod
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   └── seed.ts          # bydel polygons from city open data
+├── server/                  # Hono Worker API
+│   ├── migrations/          # D1 schema
 │   └── src/
-│       ├── index.ts         # Hono app + route registration
-│       ├── prisma.ts
+│       ├── index.ts         # Hono app and route registration
+│       ├── db.ts            # D1 and Drizzle boundary
+│       ├── schema.ts        # Drizzle schema
 │       └── lib/
 │           ├── cities.ts
-│           ├── geonorge.ts  # address search proxy
-│           └── lookup.ts    # bbox prefilter + JS PIP
-├── flake.nix                # devshell (bun + node + claude-code)
+│           ├── geonorge.ts  # Address search proxy
+│           └── lookup.ts    # Bounding-box filter and point-in-polygon
+├── alchemy.run.ts           # Cloudflare deployment
+├── package.json             # Deployment commands
+├── flake.nix                # Development shell
 └── diagrams/
 ```
 
@@ -66,21 +65,56 @@ public, read-only).
 ```sh
 nix develop          # bun + node + tooling
 
-# Server
-cd server
-cp .env.example .env
-bun install
-bunx prisma generate
-bun run migrate      # applies schema, creates dev.db
-bun run seed         # populates bydel polygons (from open data)
-bun run dev          # → http://127.0.0.1:4001
+# Install each locked package.
+bun install --frozen-lockfile
+bun install --cwd app --frozen-lockfile
+bun install --cwd server --frozen-lockfile
 
-# App (separate terminal)
-cd app
-cp .env.example .env  # PUBLIC_API_URL=http://localhost:4001
-bun install
-bun run dev          # → http://localhost:4321
+# Start the complete local Cloudflare stack.
+bun run dev
+
+# Run the repository checks.
+bun run check
+
+# Create a production plan without applying it.
+bun run plan
 ```
+
+## Production deployment
+
+Production changes require operator approval and a Cloudflare profile with
+Worker and D1 access. CI checks the repository but does not deploy it.
+
+The first plan can bootstrap or upgrade the shared `alchemy-state-store` Worker.
+That is a provider mutation and is part of the required approval.
+
+```sh
+bun install --frozen-lockfile
+bun run check
+bun run plan
+bun run deploy
+```
+
+Inspect the plan before deployment. It must adopt and retain `finnbydel-db`.
+It must not replace or delete the database.
+
+For the first cutover:
+
+1. Record the current Pages deployment, API Worker revision, DNS records, and custom-domain attachments.
+2. Detach `finnbydel.phibkro.org` from Pages, or remove its Pages CNAME, immediately before the approved deployment.
+3. Run the deployment and verify both public domains before removing either prior deployment.
+
+## Rollback
+
+For the first cutover, detach `finnbydel.phibkro.org` from the new Worker.
+Reattach the hostname to the previous Pages deployment.
+Redeploy the previous API Worker revision if the API changed.
+Do not delete or recreate `finnbydel-db`.
+
+For later releases, use a clean worktree at the last known-good revision.
+Install its lock files, run its checks, inspect `bun run plan`, and run
+`bun run deploy` after operator approval. Do not use `alchemy destroy` as a
+rollback command.
 
 ## Migration history
 

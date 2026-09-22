@@ -19,7 +19,7 @@ export type LookupResult = {
 
 export type City = { id: number; name: string };
 
-const API_BASE = (import.meta.env.PUBLIC_API_URL as string) ?? "http://localhost:4001";
+const API_BASE = (import.meta.env.PUBLIC_API_URL as string) ?? "https://finnbydel-api.phibkro.org";
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {

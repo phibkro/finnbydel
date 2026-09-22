@@ -2,12 +2,10 @@
  * Seed Norwegian bydel polygons from public sources (Kartverket /
  * per-city open-data portals).
  *
- * Workers + D1 model: this script runs *locally* via `bun run
- * src/seed.ts`, fetches all GeoJSON, and emits a `seed.sql` file
- * with INSERT-OR-REPLACE statements. The operator then applies it
- * to the remote D1 database with:
- *
- *   wrangler d1 execute finnbydel-db --remote --file=seed.sql
+ * Workers + D1 model: this script runs locally through `bun run
+ * seed`. It fetches all GeoJSON and emits a `seed.sql` file with
+ * INSERT OR REPLACE statements. Applying that file to production is
+ * an operator-approved data mutation and is not part of the deployment.
  *
  * Idempotent — re-running regenerates the SQL with the latest
  * polygons; the INSERT OR REPLACE syntax updates rows in place

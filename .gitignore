@@ -19,6 +19,7 @@ server/dist/
 *.db
 *.db-journal
 .direnv/
+.alchemy/
 .claude/
 result
 result-*

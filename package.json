@@ -1,0 +1,24 @@
+{
+  "name": "finnbydel",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "CLOUDFLARE_ACCOUNT_ID=00000000000000000000000000000000 CLOUDFLARE_API_TOKEN=local ALCHEMY_STAGE=development alchemy dev",
+    "plan": "ALCHEMY_STAGE=production alchemy plan",
+    "deploy": "ALCHEMY_STAGE=production alchemy deploy",
+    "app:build": "cd app && bun run build",
+    "server:typecheck": "cd server && bunx tsc --noEmit",
+    "infra:typecheck": "tsc --noEmit -p tsconfig.alchemy.json",
+    "check": "bun run app:build && bun run server:typecheck && bun run infra:typecheck"
+  },
+  "devDependencies": {
+    "@effect/platform-bun": "4.0.0-rc.117",
+    "@effect/platform-node": "4.0.0-rc.117",
+    "@types/node": "^20.19.40",
+    "alchemy": "2.0.0-beta.79",
+    "effect": "4.0.0-rc.117",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "bun@1.3.13"
+}
