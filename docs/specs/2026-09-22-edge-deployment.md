@@ -1,6 +1,8 @@
 # Deploy Finnbydel at the Cloudflare edge
 
 Frozen: yes
+Status: deployed and accepted on 2026-09-22. The homelab runtime retired after production acceptance.
+
 Revision: 2026-09-22. The existing D1 database is retained if its deployment
 declaration is removed. Local development uses only local Worker and D1
 instances. Production Workers expose only their custom domains.

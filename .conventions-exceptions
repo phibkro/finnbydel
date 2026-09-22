@@ -1,0 +1,4 @@
+divergences:
+  - key: linter
+    value: no-root-linter
+    reason: The current root gate builds and type-checks three package roots; adopting the foundry Oxlint and Oxfmt policy across them is separate product work.

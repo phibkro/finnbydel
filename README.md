@@ -98,23 +98,20 @@ bun run deploy
 Inspect the plan before deployment. It must adopt and retain `finnbydel-db`.
 It must not replace or delete the database.
 
-For the first cutover:
-
-1. Record the current Pages deployment, API Worker revision, DNS records, and custom-domain attachments.
-2. Detach `finnbydel.phibkro.org` from Pages, or remove its Pages CNAME, immediately before the approved deployment.
-3. Run the deployment and verify both public domains before removing either prior deployment.
+The Cloudflare cutover completed on September 22, 2026.
+The application and API now deploy from this repository.
+No homelab runtime or current Pages attachment is part of the release path.
 
 ## Rollback
 
-For the first cutover, detach `finnbydel.phibkro.org` from the new Worker.
-Reattach the hostname to the previous Pages deployment.
-Redeploy the previous API Worker revision if the API changed.
-Do not delete or recreate `finnbydel-db`.
+Use a clean worktree at the last known-good revision. Install its lock files,
+run its checks, inspect `bun run plan`, and run `bun run deploy` only after
+operator approval. Verify both public domains, address search, and a D1-backed
+borough lookup.
 
-For later releases, use a clean worktree at the last known-good revision.
-Install its lock files, run its checks, inspect `bun run plan`, and run
-`bun run deploy` after operator approval. Do not use `alchemy destroy` as a
-rollback command.
+Do not delete or recreate `finnbydel-db`, and do not use `alchemy destroy` as a
+rollback command. The former Pages deployment is cutover history, not the
+default rollback target.
 
 ## Migration history
 
