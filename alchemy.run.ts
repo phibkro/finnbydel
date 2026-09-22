@@ -42,7 +42,7 @@ export default Alchemy.Stack(
     }).pipe(Alchemy.AdoptPolicy.adopt(true));
 
     const site = yield* Cloudflare.Website.StaticSite("Site", {
-      name: "finnbydel-app",
+      name: "finnbydel",
       cwd: "app",
       command: "bun run build",
       outdir: "dist",
