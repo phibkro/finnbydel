@@ -110,6 +110,19 @@
         "renovate",
         "manual-review"
       ]
+    },
+    {
+      "description": "Effect and every @effect/* package (overrides included) move together, by hand: an @effect package at another version than effect fails when it loads, not at type check",
+      "matchPackageNames": [
+        "effect",
+        "/^@effect\\//"
+      ],
+      "groupName": "effect",
+      "automerge": false,
+      "labels": [
+        "renovate",
+        "manual-review"
+      ]
     }
   ]
 }
