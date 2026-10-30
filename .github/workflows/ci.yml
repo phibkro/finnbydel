@@ -153,7 +153,7 @@ jobs:
             sleep 3
           done
           if [ "$observed" != "$expected" ]; then
-            echo "::error::The state store answers v${observed:-nothing}; this Alchemy expects v$expected. Bootstrap or upgrade it from a machine, then rerun."
+            echo "::error::The state store answers v${observed:-nothing}; this Alchemy expects v$expected. Bootstrap or upgrade it from a machine (bunx alchemy state bootstrap --backend cloudflare), then rerun."
             exit 1
           fi
           echo "State store v$observed"
