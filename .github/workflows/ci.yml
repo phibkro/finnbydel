@@ -105,8 +105,10 @@ jobs:
             changed="the last deploy ($last) is no longer in the history"
           else
             changed=$(git diff --name-only "$last" HEAD -- alchemy.run.ts server/migrations)
-            alchemy_version() { git show "$1:package.json" | jq -r '.devDependencies.alchemy // .dependencies.alchemy'; }
-            if [ "$(alchemy_version "$last")" != "$(alchemy_version HEAD)" ]; then changed="$changed alchemy version"; fi
+            # Every Alchemy package the lockfile resolves (since beta.84 the D1 provider and its migrations live in
+            # @alchemy.run/cloudflare and @alchemy.run/sql), and the Effect SQL packages those migrations run on.
+            alchemy_versions() { git show "$1:bun.lock" | grep -oE '"(alchemy|@alchemy\.run/[a-z0-9-]+|@effect/sql[a-z0-9-]*)@[^"]+"' | sort -u | tr '\n' ' '; }
+            if [ "$(alchemy_versions "$last")" != "$(alchemy_versions HEAD)" ]; then changed="$changed alchemy or sql package versions"; fi
           fi
           if [ -n "$changed" ] && [ "$REVIEWED" != true ]; then
             echo "::error::Changed since the last deploy (${last:-none}): $changed. Read \`bun run plan\`, then run this workflow by hand with infrastructure_reviewed."
