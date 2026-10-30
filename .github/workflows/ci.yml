@@ -80,7 +80,7 @@ jobs:
           head=$(gh api "repos/$REPOSITORY/commits/main" --jq .sha)
           if [ "$head" != "$GITHUB_SHA" ]; then echo "::error::main moved on to $head; its run deploys"; exit 1; fi
 
-      # The database is retained production data: a change to the deployment program, to the migrations or to
+      # The database is retained production data: a change to the deployment program, to the migrations, to patches/ or to
       # Alchemy's version since the last successful deploy needs a person who has read `bun run plan`. Renovate's
       # merges never carry one, so they still deploy on their own.
       - name: Infrastructure changes since the last deploy are reviewed
@@ -104,7 +104,7 @@ jobs:
           elif ! git cat-file -e "$last^{commit}" 2>/dev/null; then
             changed="the last deploy ($last) is no longer in the history"
           else
-            changed=$(git diff --name-only "$last" HEAD -- alchemy.run.ts server/migrations)
+            changed=$(git diff --name-only "$last" HEAD -- alchemy.run.ts server/migrations patches)
             # Every Alchemy package the lockfile resolves (since beta.84 the D1 provider and its migrations live in
             # @alchemy.run/cloudflare and @alchemy.run/sql), and the Effect SQL packages those migrations run on.
             alchemy_versions() { git show "$1:bun.lock" | grep -oE '"(alchemy|@alchemy\.run/[a-z0-9-]+|@effect/sql[a-z0-9-]*)@[^"]+"' | sort -u | tr '\n' ' '; }

@@ -4,7 +4,7 @@
 
 ## `alchemy@2.0.0-beta.84.patch` (temporary)
 
-**Drop at alchemy 2.0.0-beta.85**: delete the patch file, this entry and the `patchedDependencies` line, then bump Alchemy as usual.
+**Drop at alchemy 2.0.0-beta.85**: delete the patch file, this entry, the `patchedDependencies` line and the `Patches` bullet in `AGENTS.md`, then bump Alchemy as usual.
 
 Effect 4.1.0 replaced the `effect/Crypto` module with per-family services under `effect/crypto/*` and no longer includes crypto in the platform `*Services` layers ([Effect-TS/effect@8f23668](https://github.com/Effect-TS/effect/commit/8f236683ad92bc4b4f58e16e91d40ce713c20578)). Alchemy 2.0.0-beta.84 still imports `effect/Crypto`, so under Effect 4.1 the CLI (`alchemy dev`, `plan`, `deploy`) fails when it loads, while type checks with `skipLibCheck` still pass.
 
