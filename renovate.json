@@ -6,30 +6,48 @@
     ":semanticCommits",
     ":automergeDigest"
   ],
-  "schedule": ["before 5am on monday"],
+  "schedule": [
+    "before 5am on monday"
+  ],
   "timezone": "Europe/Oslo",
-  "labels": ["renovate"],
+  "labels": [
+    "renovate"
+  ],
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
-    "schedule": ["before 5am on the first day of the month"]
+    "schedule": [
+      "before 5am on the first day of the month"
+    ]
   },
   "vulnerabilityAlerts": {
     "enabled": true,
     "automerge": true,
-    "labels": ["renovate", "security"],
+    "labels": [
+      "renovate",
+      "security"
+    ],
     "schedule": []
   },
   "packageRules": [
     {
       "description": "Auto-merge patch-level updates that pass CI",
-      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true
     },
     {
       "description": "Auto-merge minor bumps for type packages",
-      "matchPackageNames": ["/^@types\\//"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": [
+        "/^@types\\//"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
@@ -41,7 +59,10 @@
         "@tailwindcss/vite",
         "tailwindcss"
       ],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
@@ -57,15 +78,38 @@
         "hono",
         "@hono/node-server"
       ],
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
-      "labels": ["renovate", "manual-review"]
+      "labels": [
+        "renovate",
+        "manual-review"
+      ]
     },
     {
       "description": "Group all minor + patch dev deps into one PR",
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "dev dependencies"
+    },
+    {
+      "description": "Alchemy bumps can upgrade the account's shared state store: bump every repository together, by hand",
+      "matchPackageNames": [
+        "alchemy",
+        "/^@alchemy\\.run\\//"
+      ],
+      "groupName": "alchemy",
+      "automerge": false,
+      "labels": [
+        "renovate",
+        "manual-review"
+      ]
     }
   ]
 }
