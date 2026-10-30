@@ -123,6 +123,17 @@
         "renovate",
         "manual-review"
       ]
+    },
+    {
+      "description": "astro check does not support TypeScript 7 yet (CI of #26 failed with it): keep app/ and server/ below 7; the root already runs 7 for the deployment type check",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "matchFileNames": [
+        "app/package.json",
+        "server/package.json"
+      ],
+      "allowedVersions": "<7"
     }
   ]
 }
