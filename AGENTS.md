@@ -29,4 +29,4 @@ flagged as drift by `conventions-check`; record real divergences in
 - Verification: `just check` builds the app and type-checks the API and deployment program. Each of the three committed lock files remains authoritative for its package root.
 - Data: `finnbydel-db` is the retained production D1 database. Do not replace, delete, or copy it into the homelab.
 - Public contract: `finnbydel.phibkro.org` calls the read-oriented API at `finnbydel-api.phibkro.org`. The homelab does not build, route, or serve either Worker.
-- Deployment: inspect `bun run plan`, then use `bun run deploy` only with operator approval. CI checks; it does not deploy.
+- Deployment: CI deploys stage `production` (`bun run deploy`) after every merge to `main` once the checks pass, when the repository variable `DEPLOYMENTS` is `enabled` (secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, environment `production`). A local `bun run deploy` still needs operator approval; inspect `bun run plan` first. A merged migration in `server/migrations` is applied to the retained `finnbydel-db` on that deploy.
