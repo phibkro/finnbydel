@@ -93,8 +93,10 @@ jobs:
           last=""
           # Only deployments that GitHub Actions made in exactly `production`: the API matches environment names
           # case-insensitively (so a Vercel "Production" would match), and credits each deployment to whoever started
-          # the run (the operator, renovate[bot]), never to github-actions[bot]. Any other job that enters `production`
-          # must set `deployment: false`, or its success would become this base.
+          # the run (the operator, renovate[bot]), never to github-actions[bot]. A run Renovate starts records no app
+          # (`performed_via_github_app` is null), so its deploy never becomes the base: the base is then older and the
+          # check stricter, never looser. Any other job that enters `production` must set `deployment: false`, or its
+          # success would become this base.
           for id in $(gh api "repos/$REPOSITORY/deployments?environment=production&per_page=100" --jq '.[] | select(.environment == "production" and .performed_via_github_app.slug == "github-actions") | .id'); do
             if [ "$(gh api "repos/$REPOSITORY/deployments/$id/statuses" --jq '.[0].state // empty')" = success ]; then
               last=$(gh api "repos/$REPOSITORY/deployments/$id" --jq .sha)
