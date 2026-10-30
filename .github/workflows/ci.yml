@@ -135,9 +135,17 @@ jobs:
           api=$(find node_modules/alchemy/src node_modules/@alchemy.run/cloudflare/src -path '*StateStore/Api.ts' 2>/dev/null | head -1)
           expected=$(sed -nE 's/^export const STATE_STORE_VERSION = ([0-9]+) as const;$/\1/p' "${api:-/dev/null}")
           test -n "$expected" || { echo "::error::cannot read the state store version this Alchemy expects"; exit 1; }
-          subdomain=$(curl -fsS --max-time 20 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" | jq -r '.result.subdomain // empty')
-          test -n "$subdomain" || { echo "::error::cannot read the account's workers.dev subdomain"; exit 1; }
+          # Cloudflare's error codes and messages are printed when this fails (they hold no credentials).
+          response=$(curl -sS --max-time 20 -w '\n%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" || true)
+          status=${response##*$'\n'}
+          body=${response%$'\n'*}
+          subdomain=$(printf '%s' "$body" | jq -r '.result.subdomain // empty' 2>/dev/null || true)
+          if [ -z "$subdomain" ]; then
+            errors=$(printf '%s' "$body" | jq -c '[.errors[]? | {code, message}]' 2>/dev/null || echo "not JSON")
+            echo "::error::cannot read the account's workers.dev subdomain (HTTP $status, $errors). Check that CLOUDFLARE_ACCOUNT_ID is the account ID and that the token can read Workers in that account."
+            exit 1
+          fi
           observed=""
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             observed=$(curl -fsS --max-time 10 "https://alchemy-state-store.$subdomain.workers.dev/version" | jq -r '.version // empty' || true)
