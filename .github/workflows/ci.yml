@@ -92,6 +92,7 @@ jobs:
           set -euo pipefail
           last=""
           # Only this workflow's deployments (environment names match case-insensitively, so a Vercel "Production" would too).
+          # Any other job that enters `production` must set `deployment: false`, or its success would become this base.
           for id in $(gh api "repos/$REPOSITORY/deployments?environment=production&per_page=100" --jq '.[] | select(.creator.login == "github-actions[bot]") | .id'); do
             if [ "$(gh api "repos/$REPOSITORY/deployments/$id/statuses" --jq '.[0].state // empty')" = success ]; then
               last=$(gh api "repos/$REPOSITORY/deployments/$id" --jq .sha)
