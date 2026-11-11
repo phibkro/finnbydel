@@ -14,16 +14,16 @@
   },
   "devDependencies": {
     "@alchemy.run/cloudflare": "2.0.0-beta.84",
-    "@effect/platform-bun": "4.1.0",
-    "@effect/platform-node": "4.1.0",
+    "@effect/platform-bun": "4.1.4",
+    "@effect/platform-node": "4.1.4",
     "@types/node": "^26.0.0",
     "alchemy": "2.0.0-beta.84",
-    "effect": "4.1.0",
+    "effect": "4.1.4",
     "typescript": "7.0.2"
   },
   "overrides": {
-    "@effect/platform-node-shared": "4.1.0",
-    "@effect/sql-d1": "4.1.0"
+    "@effect/platform-node-shared": "4.1.4",
+    "@effect/sql-d1": "4.1.4"
   },
   "packageManager": "bun@1.3.13",
   "patchedDependencies": {
